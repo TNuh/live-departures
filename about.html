@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About – Live Departures</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .about-wrap {
+      max-width: min(680px, 94vw);
+      margin: 2rem auto 3rem;
+      line-height: 1.7;
+    }
+    .about-wrap h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .about-wrap h2 { font-size: 1.05rem; margin-top: 2rem; margin-bottom: 0.4rem; opacity: 0.85; letter-spacing: 0.5px; }
+    .about-wrap p  { margin: 0.4rem 0 0.8rem; opacity: 0.85; font-size: 0.95rem; }
+    .about-wrap ul { margin: 0.3rem 0 0.8rem 1.2rem; opacity: 0.85; font-size: 0.95rem; }
+    .about-wrap li { margin-bottom: 0.3rem; }
+    .about-wrap a  { color: var(--fg); }
+    .back-link {
+      display: inline-block;
+      margin: 1.5rem 0 0 0;
+      font-size: 0.9rem;
+      opacity: 0.7;
+      text-decoration: none;
+      color: var(--fg);
+    }
+    .back-link:hover { opacity: 1; }
+    hr { border: none; border-top: 1px solid #333; margin: 2rem 0; }
+    .lang-section { display: none; }
+    .lang-section.active { display: block; }
+  </style>
+</head>
+<body>
+<div class="about-wrap">
+
+  <!-- GERMAN -->
+  <div class="lang-section" id="section-de">
+    <a class="back-link" href="index.html">← Zurück zu den Abfahrten</a>
+
+    <h1>Live Departures</h1>
+    <p>Echtzeit-Abfahrtstafeln für den öffentlichen Verkehr in der Schweiz und Deutschland — direkt im Browser, ohne App, ohne Registrierung, ohne Tracking.</p>
+
+    <hr>
+
+    <h2>Was macht diese App?</h2>
+    <p>Sie zeigt die nächsten Abfahrten von jedem Zug-, Tram- oder Bushalt in der Schweiz und Deutschland. Die Daten werden bei jedem Aufruf live von öffentlichen APIs abgerufen.</p>
+
+    <h2>Funktionen</h2>
+    <ul>
+      <li><b>🇨🇭 / 🇩🇪 Länder-Umschalter</b> — Die Flagge oben rechts wechselt zwischen der Schweiz und Deutschland. Favoriten, Suche und Umgebung reagieren je auf das aktive Land.</li>
+      <li><b>Favoriten</b> — Deine am häufigsten genutzten Haltestellen werden automatisch gespeichert und nach Nutzungshäufigkeit sortiert. Stationen, die du seit 14 Tagen nicht mehr benutzt hast, rutschen ans Ende.</li>
+      <li><b>Umgebung</b> — Findet Haltestellen in der Nähe deines aktuellen Standorts.</li>
+      <li><b>Suche</b> — Autocomplete-Suche für Haltestellen im aktiven Land.</li>
+      <li><b>Gleis / Kante / Anleger</b> — «Gleis» im Tabellenkopf antippen, um die Gleisangabe unter jeder Abfahrt anzuzeigen. Bei Trams und Bussen erscheint «Kante», bei Fähren «Anleger».</li>
+      <li><b>Verspätungsanzeige</b> — Ein rotes <b>!</b> erscheint vor der Abfahrtszeit, wenn eine Verbindung verspätet ist.</li>
+      <li><b>Zugausfall</b> — Fällt eine Verbindung aus, erscheint ein rotes <b>✕</b> und die Zeile wird durchgestrichen.</li>
+      <li><b>Gleisänderung</b> — Wechselt ein Zug kurzfristig das Gleis, wird das ursprüngliche Gleis durchgestrichen und das neue rot angezeigt.</li>
+      <li><b>Zeitformate</b> — «Abfahrt» antippen, um zwischen relativer Zeit (3', 1:05) und Uhrzeit (14:32) zu wechseln.</li>
+      <li><b>Automatische Aktualisierung</b> — Die Tafel aktualisiert sich alle 60 Sekunden automatisch. Beim Zurückkehren zur App wird sofort neu geladen.</li>
+      <li><b>Zwei Sprachen</b> — Deutsch und Englisch, mit DE/EN umschalten.</li>
+      <li><b>Auf dem Homescreen installieren</b> — Funktioniert als PWA auf iOS und Android. Siehe <a href="install/">Installationsanleitung</a>.</li>
+    </ul>
+
+    <h2>Häufige Fragen</h2>
+
+    <h2>Ist die App kostenlos?</h2>
+    <p>Ja, vollständig kostenlos. Keine Werbung, keine Abonnements. Wer die App nützlich findet, darf dem Entwickler gerne ein Trinkgeld dalassen:</p>
+    <div class="sheet-support-btns" id="tip-btns-de">
+      <a class="support-btn" id="tip-de-1" href="#" target="_blank" rel="noopener"></a>
+      <a class="support-btn" id="tip-de-2" href="#" target="_blank" rel="noopener"></a>
+      <a class="support-btn" id="tip-de-3" href="#" target="_blank" rel="noopener"></a>
+    </div>
+
+    <h2>Funktioniert sie offline?</h2>
+    <p>Nein — Echtzeit-Abfahrtsdaten erfordern eine Internetverbindung. Die App-Oberfläche lädt schnell, aber die Abfahrtsdaten werden immer live abgerufen.</p>
+
+    <h2>Warum lädt es manchmal langsam?</h2>
+    <p>Die App nutzt öffentliche APIs, die gelegentlich langsam oder kurzzeitig nicht erreichbar sind. Es wird eine Statusmeldung angezeigt und einmal automatisch erneut versucht.</p>
+
+    <h2>Meine Haltestelle ist nicht in der Liste</h2>
+    <p>Den Modus «Andere» nutzen und den Namen eintippen. Die Autocomplete-Suche durchsucht alle Haltestellen im aktiven Land.</p>
+
+    <h2>Die Gleisinformation fehlt</h2>
+    <p>Gleisdaten sind nur verfügbar, wenn der jeweilige Betreiber sie veröffentlicht. In der Schweiz z. B. Zürich HB, Stadelhofen, Bellevue; in Deutschland z. B. Berlin Hbf. An einfachen Haltestellen ohne Gleisangabe bleibt das Feld leer.</p>
+
+    <h2>Welche Datenquellen werden verwendet?</h2>
+    <ul>
+      <li>🇨🇭 Schweiz: <a href="https://transport.opendata.ch" target="_blank">transport.opendata.ch</a> — deckt alle Schweizer Betreiber ab (SBB, ZVV, BLS usw.)</li>
+      <li>🇩🇪 Deutschland: <a href="https://transitous.org" target="_blank">Transitous</a> — Community-Dienst auf Basis von GTFS/DELFI-Feeds; kein SLA</li>
+    </ul>
+    <p>Beide APIs sind öffentlich und kostenlos. Es ist kein API-Schlüssel erforderlich.</p>
+
+    <h2>Werden Daten über mich gespeichert?</h2>
+    <p>Keine Daten werden serverseitig erfasst. Deine Favoriten und die Spracheinstellung werden ausschliesslich lokal auf deinem Gerät gespeichert (Browser-LocalStorage). Die App verwendet <a href="https://www.goatcounter.com" target="_blank">GoatCounter</a> für anonyme Seitenaufrufe — keine Cookies, kein Fingerprinting.</p>
+
+    <h2>Wie lösche ich meine Favoriten?</h2>
+    <p>In den Browser-Entwicklertools unter Application → Local Storage den Eintrag <code>favourites_v2</code> löschen. Oder einfach alte Haltestellen nicht mehr nutzen — sie verschwinden nach 14 Tagen automatisch.</p>
+
+    <hr>
+    <p style="font-size:0.82rem; opacity:0.5;">© 2026 Martin · Live Departures v1.5 · Alle Rechte vorbehalten.</p>
+  </div>
+
+  <!-- ENGLISH -->
+  <div class="lang-section" id="section-en">
+    <a class="back-link" href="index.html">← Back to departures</a>
+
+    <h1>Live Departures</h1>
+    <p>Real-time public transport departure boards for Switzerland and Germany — directly in your browser, no app, no registration, no tracking.</p>
+
+    <hr>
+
+    <h2>What does this app do?</h2>
+    <p>It shows the next departures from any train, tram, bus or ferry stop in Switzerland and Germany. Data is fetched live from public APIs every time you open the app.</p>
+
+    <h2>Features</h2>
+    <ul>
+      <li><b>🇨🇭 / 🇩🇪 Country toggle</b> — the flag button in the top right switches between Switzerland and Germany. Favorites, search, and nearby all respond to the active country.</li>
+      <li><b>Favorites</b> — your most-used stations are remembered and ranked automatically. Stations you haven't used in 14 days drop to the bottom.</li>
+      <li><b>Nearby</b> — finds stations close to your current location.</li>
+      <li><b>Search</b> — autocomplete search for any stop in the active country.</li>
+      <li><b>Track / Bay / Pier</b> — tap "Track" in the header to show platform information below each departure. Trams and buses show "Bay", ferries show "Pier".</li>
+      <li><b>Delay indicator</b> — a red <b>!</b> appears before the departure time when a service is delayed.</li>
+      <li><b>Cancellations</b> — if a service is cancelled, a red <b>✕</b> appears and the row is struck through.</li>
+      <li><b>Platform changes</b> — when a train moves to a different platform at short notice, the original is shown struck through and the new one in red.</li>
+      <li><b>Time formats</b> — tap "Departure" to switch between relative time (3', 1:05) and clock time (14:32).</li>
+      <li><b>Auto-refresh</b> — the board updates silently every 60 seconds. When you switch back to the app, it refreshes immediately.</li>
+      <li><b>Two languages</b> — German and English, tap DE/EN to switch.</li>
+      <li><b>Install on your home screen</b> — works as a PWA on iOS and Android. See the <a href="install/">install guide</a>.</li>
+    </ul>
+
+    <h2>Frequently Asked Questions</h2>
+
+    <h2>Is this free?</h2>
+    <p>Yes, completely free. No ads, no subscriptions. If you find it useful, tips are always welcome:</p>
+    <div class="sheet-support-btns" id="tip-btns-en">
+      <a class="support-btn" id="tip-en-1" href="#" target="_blank" rel="noopener"></a>
+      <a class="support-btn" id="tip-en-2" href="#" target="_blank" rel="noopener"></a>
+      <a class="support-btn" id="tip-en-3" href="#" target="_blank" rel="noopener"></a>
+    </div>
+
+    <h2>Does it work offline?</h2>
+    <p>No — live departure data requires an internet connection. The app shell loads quickly but the departure data is always fetched in real time.</p>
+
+    <h2>Why does it sometimes load slowly?</h2>
+    <p>The app uses public APIs that are occasionally slow or briefly unavailable. It will show a status message and retry automatically once before reporting a failure.</p>
+
+    <h2>My station is not in the list</h2>
+    <p>Use the "Other" mode and type the station name. The autocomplete searches all stops in the active country.</p>
+
+    <h2>The track information is missing</h2>
+    <p>Platform data is only available when the operator publishes it. In Switzerland for example Zürich HB, Stadelhofen, Bellevue; in Germany for example Berlin Hbf. At simple stops without platform data the field is left empty.</p>
+
+    <h2>What data sources are used?</h2>
+    <ul>
+      <li>🇨🇭 Switzerland: <a href="https://transport.opendata.ch" target="_blank">transport.opendata.ch</a> — covers all Swiss operators (SBB, ZVV, BLS, etc.)</li>
+      <li>🇩🇪 Germany: <a href="https://transitous.org" target="_blank">Transitous</a> — community-operated service based on GTFS/DELFI feeds; no SLA</li>
+    </ul>
+    <p>Both APIs are public and free. No API key is required.</p>
+
+    <h2>Is any data stored about me?</h2>
+    <p>No server-side data is collected. Your favorites and language preference are stored locally on your device only (browser localStorage). The app uses <a href="https://www.goatcounter.com" target="_blank">GoatCounter</a> for anonymous page view counting — no cookies, no fingerprinting.</p>
+
+    <h2>How do I clear my favorites?</h2>
+    <p>Open your browser's developer tools, go to Application → Local Storage, and delete the entry <code>favourites_v2</code>. Or simply stop using old stations — they will fade out automatically after 14 days.</p>
+
+    <hr>
+    <p style="font-size:0.82rem; opacity:0.5;">© 2026 Martin · Live Departures v1.5 · All rights reserved.</p>
+  </div>
+
+</div>
+
+<script>
+  const lang = localStorage.getItem("lang") || "de";
+  document.documentElement.lang = lang;
+  document.getElementById("section-" + lang).classList.add("active");
+
+  const country = localStorage.getItem("preferredCountry") || "CH";
+  const tips = country === "DE"
+    ? [
+        { label: "EUR 1", href: "https://buy.stripe.com/7sY14mfMU0zs4Is6ZBd7q06" },
+        { label: "EUR 2", href: "https://buy.stripe.com/3cI8wO8ks5TMgra3Npd7q07" },
+        { label: "EUR 5", href: "https://buy.stripe.com/cNieVc44cfum6QAdnZd7q08" }
+      ]
+    : [
+        { label: "CHF 1", href: "https://buy.stripe.com/cNibJ01W4gyq1wges3d7q05" },
+        { label: "CHF 2", href: "https://buy.stripe.com/4gMcN4308gyq8YI1Fhd7q00" },
+        { label: "CHF 5", href: "https://buy.stripe.com/8x2cN4dEMdme3Eo83Fd7q01" }
+      ];
+
+  ["de", "en"].forEach(l => {
+    tips.forEach((t, i) => {
+      const el = document.getElementById(`tip-${l}-${i + 1}`);
+      if (el) { el.textContent = t.label; el.href = t.href; }
+    });
+  });
+</script>
+</body>
+</html>

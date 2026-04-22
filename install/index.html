@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Live Departures installieren</title>
+<link rel="stylesheet" href="install.css" />
+</head>
+<body>
+
+<div class="header">
+  <h1>Live Departures</h1>
+  <p>Echtzeit-Abfahrten direkt auf deinem Home-Bildschirm.</p>
+</div>
+
+<!-- Features -->
+<div class="card">
+  <h2>Was dich erwartet</h2>
+  <ul class="feature-list">
+    <li><span class="icon">🚋</span> Echtzeit-Abfahrten für alle Haltestellen in der Schweiz</li>
+    <li><span class="icon">⭐</span> Favoriten – deine wichtigsten Haltestellen immer griffbereit</li>
+    <li><span class="icon">📍</span> Umgebung – Haltestellen in der Nähe per GPS</li>
+    <li><span class="icon">⚠️</span> Verspätungen und Zugausfälle werden sofort angezeigt</li>
+    <li><span class="icon">🚉</span> Gleisanzeige – inklusive Gleisänderungen in Echtzeit</li>
+    <li><span class="icon">🔄</span> Automatische Aktualisierung alle 60 Sekunden</li>
+  </ul>
+</div>
+
+<!-- iOS install steps -->
+<div id="ios-section" class="card hidden">
+  <h2>iPhone installieren</h2>
+  <ol class="step-list">
+    <li><span class="step-num">1</span><span>Öffne <a href="https://live-departures.app">live-departures.app</a> in <strong>Safari</strong></span></li>
+    <li><span class="step-num">2</span><span>Tippe unten auf das <strong>Teilen-Symbol</strong> (Quadrat mit Pfeil nach oben)</span></li>
+    <li><span class="step-num">3</span><span>Wähle <strong>„Zum Home-Bildschirm"</strong></span></li>
+    <li><span class="step-num">4</span><span>Tippe oben rechts auf <strong>„Hinzufügen"</strong> – fertig</span></li>
+  </ol>
+</div>
+
+<!-- Android install steps -->
+<div id="android-section" class="card hidden">
+  <h2>Android installieren</h2>
+  <ol class="step-list">
+    <li><span class="step-num">1</span><span>Öffne <a href="https://live-departures.app">live-departures.app</a> in <strong>Chrome</strong> oder <strong>Samsung Internet</strong></span></li>
+    <li><span class="step-num">2</span><span>Tippe rechts oben auf <strong>⋮</strong></span></li>
+    <li><span class="step-num">3</span><span>Wähle <strong>„App installieren"</strong> oder <strong>„Zum Startbildschirm"</strong></span></li>
+    <li><span class="step-num">4</span><span>Bestätigen – fertig</span></li>
+  </ol>
+</div>
+
+<!-- Fallback -->
+<div id="fallback-section" class="card hidden">
+  <h2>Installieren</h2>
+  <ol class="step-list">
+    <li><span class="step-num">1</span><span>Öffne <a href="https://live-departures.app">live-departures.app</a> in deinem Browser</span></li>
+    <li><span class="step-num">2</span><span>Nutze die Option <strong>„Zum Home-Bildschirm"</strong> oder <strong>„App installieren"</strong> im Browser-Menü</span></li>
+  </ol>
+</div>
+
+<!-- CTA -->
+<a class="cta" href="https://live-departures.app">Jetzt öffnen</a>
+<p class="cta-note">Kein App Store. Kein Download. Läuft im Browser.</p>
+
+<!-- Privacy -->
+<div class="card">
+  <h2>Gut zu wissen</h2>
+  <ul class="feature-list">
+    <li><span class="icon">🔐</span> Keine Registrierung, kein Login</li>
+    <li><span class="icon">📵</span> Keine Werbung, kein Tracking</li>
+    <li><span class="icon">💾</span> Favoriten werden nur lokal auf deinem Gerät gespeichert</li>
+    <li><span class="icon">🧭</span> Funktioniert ohne App Store – immer aktuell</li>
+  </ul>
+</div>
+
+<p class="footer">
+  Live Departures · <a href="https://live-departures.app">live-departures.app</a>
+</p>
+
+<script>
+  const ua = navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test(ua)) {
+    document.getElementById("ios-section").classList.remove("hidden");
+  } else if (/android/.test(ua)) {
+    document.getElementById("android-section").classList.remove("hidden");
+  } else {
+    document.getElementById("fallback-section").classList.remove("hidden");
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<!-- Live Abfahrten International v1.5 -->
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Departures</title>
+  <link rel="stylesheet" href="style.css">
+<!-- Apple iOS Home Screen Icon -->
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<!-- Android / PWA icons -->
+
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="manifest" href="manifest.json">
+
+  <!-- iOS PWA fullscreen / dark background -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#000000">
+  <script data-goatcounter="https://tnuh.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+
+<div class="title-block">
+  <button id="menu-btn" aria-label="Menu">&#9776;</button>
+  <div class="title-text-group">
+    <div class="title-inner">
+      <div id="title-text"></div>
+      <div id="subtitle-text"></div>
+      <div class="title-line"></div>
+    </div>
+  </div>
+  <button id="country-toggle" class="chip small" type="button" aria-label="Country toggle">🇨🇭</button>
+</div>
+
+  <!-- MODE BUTTONS -->
+  <div id="mode-buttons">
+    <button id="btn-fav" class="chip active">Favorites</button>
+    <button id="btn-near" class="chip">Nearby</button>
+    <button id="btn-other" class="chip">Other</button>
+  </div>
+
+
+  <!-- FAVORITES SELECT -->
+  <div id="fav-select" class="select-chip">
+    <select id="stationSelect"></select>
+  </div>
+
+
+  <!-- CURRENT STATION -->
+ <div class="station-area">
+  <div id="currentStationWrap">
+    <div id="currentStation" class="display-chip">
+      <span id="currentStationLabel">Zürich HB</span>
+    </div>
+  </div>
+</div>
+
+
+  <!-- OTHER / AUTOCOMPLETE -->
+  <div class="ac-wrap" id="ac-wrap" role="combobox"
+       aria-haspopup="listbox" aria-owns="ac-listbox"
+       aria-expanded="false" style="display:none;">
+
+    <label for="stationSearch" class="ac-label">Other station:</label>
+
+    <div class="ac-input-wrap">
+      <input id="stationSearch" class="ac-input" type="search"
+             inputmode="search" autocomplete="off"
+             placeholder="Type e.g. Zürich or Berlin Hbf"
+             aria-autocomplete="list" aria-controls="ac-listbox">
+    </div>
+
+    <div class="ac-list">
+      <ul id="ac-suggestions" class="ac-suggestions"
+          role="listbox" aria-label="Suggestions" hidden></ul>
+    </div>
+  </div>
+
+
+  <!-- DEPARTURES TABLE -->
+  <table id="departures" class="departure-table">
+    <thead>
+      <tr>
+        <th id="th-line">Line</th>
+        <th id="th-station"><div class="th-station-inner"><span id="th-station-label">Station</span><button id="toggle-track" class="chip small">Track</button></div></th>
+        <th id="th-time">
+          <button id="toggle-time" class="chip small">Departure</button>
+        </th>
+      </tr>
+      <tr id="refresh-bar-row">
+        <td colspan="3"><div id="refresh-bar"></div></td>
+      </tr>
+    </thead>
+ <tbody></tbody>
+<tr id="status-row" style="display:none;">
+  <td colspan="3" id="status-msg"></td>
+</tr>
+  </table>
+
+  <div id="footer-info">
+    <span>© 2026 Martin · Live Departures v1.5</span>
+    <span id="datasource-note" style="display:none;"></span>
+  </div>
+
+  <!-- MENU BACKDROP -->
+  <div id="menu-backdrop"></div>
+
+  <!-- BOTTOM SHEET -->
+  <div id="menu-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-item sheet-version">Live Departures v1.5</div>
+    <div class="sheet-divider"></div>
+    <button class="sheet-item sheet-btn" id="sheet-lang">
+      <span id="sheet-lang-label">Sprache</span>
+      <span id="sheet-lang-value"><b>DE</b> / EN</span>
+    </button>
+    <div class="sheet-divider"></div>
+    <button class="sheet-item sheet-btn" id="sheet-about">
+      <span id="sheet-about-label">Über die App</span>
+      <span class="sheet-chevron">▾</span>
+    </button>
+    <div class="sheet-divider"></div>
+    <a class="sheet-item sheet-link" id="sheet-feedback" href="#">Feedback</a>
+    <div class="sheet-divider"></div>
+    <button class="sheet-item sheet-btn" id="sheet-support">
+      <span id="sheet-support-label">Trinkgeld für den Entwickler</span>
+      <span class="sheet-chevron">▾</span>
+    </button>
+    <div class="sheet-support-btns" id="support-content" hidden>
+      <a class="support-btn" target="_blank" rel="noopener"
+         data-chf="https://buy.stripe.com/cNibJ01W4gyq1wges3d7q05" data-chf-label="CHF 1"
+         data-eur="https://buy.stripe.com/7sY14mfMU0zs4Is6ZBd7q06" data-eur-label="EUR 1">CHF 1</a>
+      <a class="support-btn" target="_blank" rel="noopener"
+         data-chf="https://buy.stripe.com/4gMcN4308gyq8YI1Fhd7q00" data-chf-label="CHF 2"
+         data-eur="https://buy.stripe.com/3cI8wO8ks5TMgra3Npd7q07" data-eur-label="EUR 2">CHF 2</a>
+      <a class="support-btn" target="_blank" rel="noopener"
+         data-chf="https://buy.stripe.com/8x2cN4dEMdme3Eo83Fd7q01" data-chf-label="CHF 5"
+         data-eur="https://buy.stripe.com/cNieVc44cfum6QAdnZd7q08" data-eur-label="EUR 5">CHF 5</a>
+    </div>
+    <div class="sheet-divider"></div>
+    <div id="about-content" hidden>
+      <p id="about-text"></p>
+      <a id="about-more" href="about.html"></a>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const VERSION = "v1.5";
+
+    // Feedback mailto
+    document.getElementById("sheet-feedback").href =
+      `mailto:welcome@live-departures.app?subject=Live%20Departures%20Feedback%20${encodeURIComponent(VERSION)}`;
+
+    // Elements
+    const menuBtn      = document.getElementById("menu-btn");
+    const sheet        = document.getElementById("menu-sheet");
+    const backdrop     = document.getElementById("menu-backdrop");
+    const aboutBtn     = document.getElementById("sheet-about");
+    const aboutLabel   = document.getElementById("sheet-about-label");
+    const aboutContent = document.getElementById("about-content");
+    const aboutText    = document.getElementById("about-text");
+    const aboutMore    = document.getElementById("about-more");
+
+    function openMenu() {
+      const lang = localStorage.getItem("lang") || "de";
+      const country = localStorage.getItem("preferredCountry") || "CH";
+      const cur = country === "DE" ? "eur" : "chf";
+      document.querySelectorAll(".support-btn").forEach(btn => {
+        btn.href = btn.dataset[cur];
+        btn.textContent = btn.dataset[cur + "Label"];
+      });
+      aboutLabel.textContent = lang === "en" ? "About" : "Über die App";
+      document.getElementById("sheet-support-label").textContent =
+        lang === "en" ? "Tip the developer" : "Trinkgeld für den Entwickler";
+      document.getElementById("sheet-lang-label").textContent =
+        lang === "en" ? "Language" : "Sprache";
+      document.getElementById("sheet-lang-value").innerHTML =
+        lang === "en" ? "DE / <b>EN</b>" : "<b>DE</b> / EN";
+      sheet.classList.add("open");
+      backdrop.classList.add("open");
+    }
+
+    function closeMenu() {
+      sheet.classList.remove("open");
+      backdrop.classList.remove("open");
+      aboutContent.hidden = true;
+      aboutBtn.classList.remove("active");
+      supportContent.hidden = true;
+      supportBtn.classList.remove("active");
+    }
+
+    window.closeMenu = closeMenu;
+    menuBtn.addEventListener("click", openMenu);
+    backdrop.addEventListener("click", closeMenu);
+
+    // Support toggle
+    const supportBtn     = document.getElementById("sheet-support");
+    const supportContent = document.getElementById("support-content");
+
+    supportBtn.addEventListener("click", () => {
+      const isOpen = !supportContent.hidden;
+      supportContent.hidden = isOpen;
+      supportBtn.classList.toggle("active", !isOpen);
+    });
+
+    // About toggle
+    aboutBtn.addEventListener("click", () => {
+      const isOpen = !aboutContent.hidden;
+      if (!isOpen) {
+        const lang = localStorage.getItem("lang") || "de";
+        aboutText.textContent = lang === "en"
+          ? "Real-time public transport departures for Switzerland and Germany — right in your browser, no registration, no tracking."
+          : "Echtzeit-Abfahrten für den öffentlichen Verkehr in der Schweiz und Deutschland — direkt im Browser, ohne Registrierung, ohne Tracking.";
+        aboutMore.textContent = lang === "en" ? "Full details →" : "Mehr erfahren →";
+      }
+      aboutContent.hidden = isOpen;
+      aboutBtn.classList.toggle("active", !isOpen);
+    });
+  });
+  </script>
+</body>
+</html>

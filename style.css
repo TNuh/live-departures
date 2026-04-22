@@ -1,0 +1,787 @@
+/* Live Departure International v1.5 */
+
+/* Farben & Basis */
+:root{
+  --bg:#000;
+  --fg:#ffa31a;
+  --fg-dim:#ffb84d;
+  --line:#333;
+  --chip-bg:#000;
+  --chip-bg-active:#111;
+  --chip-shadow:0 0 0 1px #ffa31a inset, 0 0 14px rgba(255,163,26,.25);
+
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,"Liberation Mono",Consolas,monospace;
+  -webkit-font-smoothing:antialiased;
+  font-size:clamp(14px,2.7vw,18px);
+}
+
+/* Button-Zeile */
+#mode-buttons {
+  display: flex;
+  flex-wrap: nowrap;      /* IMPORTANT: no line break allowed */
+  gap: 0.8rem;
+  justify-content: center;
+}
+
+#mode-buttons .chip {
+  flex-shrink: 1;
+  min-width: 6.0rem;
+  padding: 0.60rem 1.30rem;
+  font-size: 0.80rem;     /* same as unified .chip */
+  letter-spacing: inherit; /* ensures identical spacing */
+}
+
+/* Anzeige-Chip in der Mitte (aktuelle Station) */
+.display-chip{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:-1.50rem auto .4rem;   /* horizontal auto -> sicher zentriert */
+  pointer-events:auto;
+}
+
+.display-chip #currentStationLabel {
+  display: inline-block;
+  margin-top: 1.5rem;
+  max-width: min(72vw, 680px);
+
+padding: 0.45rem 1.0rem;     /* slightly larger than buttons, but not too big */
+font-size: 1.05rem;          /* was 1.15rem */
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+
+  background: rgba(255, 163, 26, 0.18);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+
+  border: 2px solid rgba(255, 180, 60, 0.65);
+  border-radius: 0.55rem;
+
+  box-shadow:
+    0 0 22px rgba(255, 163, 26, 0.35),
+    inset 0 0 6px rgba(255, 255, 255, 0.06);
+
+  color: var(--fg-dim);
+}
+
+/* Autocomplete wrapper */
+.ac-wrap {
+  max-width: min(400px, 92vw);
+  width: 100%;
+  margin: 0.6rem auto;
+  padding: 0;
+  display: none;
+}
+
+.ac-wrap.is-open {
+  display: block;
+}
+
+.ac-label {
+  display: block;
+  margin: 0 0 .25rem .2rem;
+  color: var(--fg-dim);
+}
+
+/* Input field */
+.ac-input {
+  width: 100%;
+  font-size: 1rem;
+  line-height: 1.1;
+  padding: 0.55rem 1rem;
+  margin-top: 0.35rem;
+  border-radius: 0.25rem;                        /* pill shape */
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);       /* subtle transparent */
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(255, 165, 0, 0.12); /* soft glow */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.ac-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 22px rgba(255, 165, 0, 0.25);
+}
+
+/* Input wrapper for centering */
+.ac-input-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.ac-input-wrap .ac-input {
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+}
+
+/* Suggestions dropdown */
+.ac-list {
+  position: relative;
+}
+
+.ac-suggestions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  font-size: 0.95rem;
+  margin-top: .25rem;
+  text-align: left;
+  list-style: none;
+  padding: .25rem 0;
+  max-height: 280px;
+  overflow: auto;
+  background: #0e0e0e;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.6);
+  z-index: 1000;
+}
+
+/* Suggestions items */
+.ac-item {
+  padding: .45rem .9rem;
+  cursor: pointer;
+  color: #ffffff;                    /* white text */
+  transition: background 0.15s, color 0.15s;
+}
+
+/* Hover + active state */
+.ac-item:hover,
+.ac-item.is-active {
+  background: rgba(255, 165, 0, 0.12);  /* orange glow */
+  color: #ffffff;                       /* white text */
+}
+
+/* Departure table layout */
+.departure-table {
+  width: min(980px, 94vw);
+  margin: 0 auto 0.4rem;
+  border-collapse: collapse;
+  table-layout: auto;   /* was fixed */
+}
+
+/* Header cells */
+/* Unified table header styling */
+.departure-table thead th {
+  /* Layout & spacing */
+  padding: 0.5rem 0.35rem;
+  border-bottom: 1px solid #1a1a1a;
+  text-align: left;
+
+  /* Typography */
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+
+  /* Background tint (adjust final intensity here) */
+  background: rgba(255, 165, 0, 0.18); /* less transparent */
+}
+
+/* Prevent clipping of the Abfahrt toggle in the header */
+.departure-table thead th:last-child {
+  position: relative;
+  overflow: visible; /* ensures nothing gets cut */
+}
+
+.departure-table thead th:last-child button {
+  position: absolute;
+  right: 0.3rem;       /* pushes glow fully outside border */
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  font-size: 1.1em;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.25rem 0.8rem;
+  border-radius: 0.9rem;
+}
+
+/* Refresh bar row */
+#refresh-bar-row td {
+  padding: 0;
+  height: 2px;
+  border: none;
+  background: transparent;
+}
+
+#refresh-bar {
+  height: 2px;
+  width: 0;
+  background: var(--fg);
+  opacity: 0.75;
+  box-shadow: 0 0 6px rgba(255, 163, 26, 0.55);
+}
+
+#refresh-bar.draining {
+  animation: drain-bar 60s linear forwards;
+}
+
+@keyframes drain-bar {
+  from { width: 100%; opacity: 0.75; }
+  to   { width: 0%;   opacity: 0.25; }
+}
+
+/* Body cells */
+.departure-table tbody td {
+  padding: .5rem .35rem;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Linie column (left) */
+.departure-table th:nth-child(1),
+.departure-table td:nth-child(1) {
+  text-align: left;
+  min-width: 3ch;
+  max-width: 14ch;
+  width: 1%;
+  white-space: nowrap;
+  padding-right: 0.3rem;
+}
+
+/* Ziel column (middle) */
+.departure-table th:nth-child(2),
+.departure-table td:nth-child(2) {
+  width: 100%;
+  text-align: left;
+}
+
+.departure-table td:nth-child(2) {
+  max-width: 40ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.departure-table thead th:nth-child(2) {
+  overflow: visible;
+}
+
+/* Abfahrt column (right) */
+.departure-table th:nth-child(3),
+.departure-table td:nth-child(3) {
+  text-align: right;
+  white-space: nowrap;
+  min-width: 3ch;
+  width: auto;
+}
+
+/* Sichtbar, zentriert, mit vernünftiger Breite/Schrift – wie vor der Änderung */
+.select-chip{
+  display: none;                    /* hidden by default */
+  justify-content: center;
+  margin: .8rem auto .2rem;
+  height: auto;
+  pointer-events: auto;
+}
+
+/* kleiner Pfeil rechts im Chip */
+.select-chip::after {
+  content: "▾";
+  position: absolute;
+  right: 1.0rem;     /* arrow placed inside the button on the right */
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--fg-dim);
+  font-size: 0.9rem;
+}
+
+/* Mobile Feinschliff */
+@media(max-width:480px){
+  .title-wrap{margin:.6rem 0 0}
+  #mode-buttons{gap:.5rem}
+  .display-chip #currentStationLabel{font-size:1rem; padding:.4rem .9rem}
+  table{margin-bottom:1.5rem}
+  input,select,textarea{font-size:16px}
+  
+  .departure-table th:nth-child(2),
+  .departure-table td:nth-child(2){
+    max-width:28ch;
+  }
+}
+
+/* Keep chip below buttons when Andere is open */
+body.mode-other #currentStationWrap,
+body.mode-other .display-chip{
+  margin-top:-1.5rem !important;  /* fixed distance under the buttons */
+}
+
+body.mode-other .ac-wrap{
+  margin-top:.35rem;             /* small gap between chip and input */
+}
+
+/* Defensive stacking (prevents accidental overlap) */
+#currentStationWrap,
+.display-chip { position:relative; z-index:0; }
+
+.station-area {
+  position: relative;
+  margin: 1rem auto;
+  text-align: center;
+}
+
+#currentStation {
+  margin-bottom: 0.5rem;
+  cursor: pointer;        /* show hand cursor */
+  pointer-events: auto;   /* ensure clicks reach JS */
+}
+
+/* Style the dropdowns (Favoriten & Umgebung) */
+.select-chip select {
+  color: var(--fg);
+  background: var(--chip-bg);
+
+  /* Match chip rounding */
+  border-radius: 0.9rem;
+
+  border: 0;
+
+  /* Same vertical + horizontal padding as chip buttons */
+  padding: 0.65rem 1.35rem;
+
+  box-shadow: var(--chip-shadow);
+
+  /* Same typography as buttons */
+  font-size: 0.92rem;
+  font-family: "JetBrains Mono", monospace;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  outline: none;
+  text-align: left;
+
+  /* Match chip width */
+  min-width: 7.0rem;
+  max-width: 20rem;
+
+  cursor: pointer;
+
+
+-moz-appearance: none;
+background-image: none;      /* hide native arrow */
+background-repeat: no-repeat;
+background-position: right;  /* prevents leftover artifacts */
+}
+
+/* Dropdown options: system native, readable */
+.select-chip select option {
+  color: black;
+  background: white;
+}
+
+/* Track toggle in station header */
+.th-station-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+#toggle-track {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: var(--chip-bg, #1a1208);
+  border: 1px solid var(--accent, #ffb84d);
+  border-radius: 0.55rem;
+  box-shadow: 0 0 0.8rem rgba(255, 184, 77, 0.2);
+  padding: 0.1rem 0.6rem;
+  transition: background 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+
+#toggle-track.active,
+.departure-table thead th #toggle-time.active {
+  background: rgba(255, 180, 60, 0.2);
+  box-shadow: 0 0 1.2rem rgba(255, 184, 77, 0.45);
+}
+
+/* Delay mark */
+.delay-mark {
+  color: #ff5c5c;
+  font-weight: 700;
+}
+
+/* Cancellation mark and row */
+.cancel-mark {
+  color: #ff5c5c;
+  font-weight: 700;
+}
+
+tr.cancelled td {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+/* Platform change */
+.platform-old {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.platform-new {
+  color: #ff5c5c;
+  font-weight: 700;
+}
+
+.track-cell {
+  font-size: 0.78em;
+  opacity: 0.6;
+  margin-top: 0.1rem;
+  color: var(--fg-dim);
+}
+
+/* Keep button glow while unifying font */
+.departure-table thead th #toggle-time {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: var(--chip-bg, #1a1208);
+  border: 1px solid var(--accent, #ffb84d);
+  border-radius: 0.55rem;
+  box-shadow: 0 0 0.8rem rgba(255, 184, 77, 0.2);
+  padding: 0.1rem 0.6rem;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+/* ===========================
+   UNIFIED BUTTON SYSTEM
+   =========================== */
+
+/* Default / idle button */
+/* Universal chip styling — fixed centering */
+.chip {
+  display: flex;
+  align-items: center;      /* vertical centering */
+  justify-content: center;  /* horizontal centering */
+
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.55rem;
+
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 180, 60, 0.55);
+
+  color: var(--fg);
+  font-size: 0.80rem;       /* ← slightly smaller */
+  font-family: "JetBrains Mono", monospace;
+
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+/* Active mode (Fav/Near/Other only) */
+.chip.active {
+  box-shadow: 0 0 18px rgba(255, 180, 60, 0.55);
+  background: rgba(255, 180, 60, 0.15);
+}
+
+.chip.small {
+  font-size: 0.82rem;
+  padding: 0.32rem 0.8rem;
+  min-width: auto;
+}
+
+#country-toggle {
+  font-size: 1.8rem;
+  padding: 0.45rem 1rem;
+  min-width: auto;
+  border-color: transparent;
+}
+
+#country-toggle:hover {
+  opacity: 0.95;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Make the language toggle smaller */
+/* Force smaller language button */
+#btn-lang.chip.small {
+  white-space: normal;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.75rem;
+  gap: 0.20rem;
+  min-width: auto;
+}
+
+/* Typography refinement for v6.6 */
+.departure-table {
+  font-size: 1rem;        /* keep base size */
+  line-height: 1.5;       /* slightly more breathing room */
+}
+
+.departure-table thead th button.chip {
+  font-family: inherit !important;
+  font-weight: inherit !important;
+  font-size: inherit !important;
+  letter-spacing: inherit;
+  text-transform: none;
+}
+
+#currentStationWrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* -------- TITLE BLOCK -------- */
+/* outer wrapper — full width, flex row, title left / hamburger right */
+.title-block {
+    width: min(980px, 94vw);
+    margin: 1rem auto 1.2rem auto;
+    display: flex;
+    align-items: flex-start;
+    padding: 0;
+}
+
+/* Hamburger menu button */
+#menu-btn {
+  background: none;
+  border: none;
+  color: var(--fg);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.3rem 0.4rem;
+  opacity: 0.75;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+#menu-btn:hover { opacity: 1; }
+
+
+/* Icon next to title */
+.title-icon {
+  height: 4.5rem;
+  width: auto;
+  margin-right: -1rem;
+}
+
+/* expands to fill space between hamburger and flag, centers the inner block */
+.title-text-group {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* shrinks to text width so the underline matches the content */
+.title-inner {
+    display: inline-flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+/* TITLE (big text) */
+#title-text {
+  font-size: clamp(28px, 5vw, 48px);  /* bigger */
+  font-weight: 700;                   /* now works */
+  letter-spacing: 0.5px;
+  color: var(--fg);
+  margin: 0;
+  line-height: 1.25;
+}
+
+/* SUBTITLE */
+#subtitle-text {
+  font-size: clamp(16px, 2.5vw, 22px);
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--fg);
+  opacity: 0.75;
+  text-transform: uppercase;
+  margin-top: 0;
+}
+
+/* LINE under subtitle — width matches widest sibling inside inline-flex */
+.title-line {
+  margin-top: 0.45rem;
+  height: 1px;
+  width: 100%;
+  background: var(--fg);
+  opacity: 0.7;
+}
+
+
+/* ================================
+   OTHER STATION FLAG FIX
+   ================================ */
+
+
+/* Add spacing between input and flag */
+.ac-input-wrap {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+  justify-content: center;
+}
+
+#footer-info {
+  margin-top: 0.4rem;
+  padding-bottom: 1.2rem;
+  text-align: center;
+  opacity: 0.3;
+  font-size: 0.75rem;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--fg);
+}
+
+#datasource-note::before {
+  content: " · ";
+}
+
+#datasource-note {
+  font-size: 0.75rem;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--fg);
+}
+
+/* -------- MENU BACKDROP -------- */
+#menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+#menu-backdrop.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* -------- BOTTOM SHEET -------- */
+#menu-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #111;
+  border-top: 1px solid #2a2a2a;
+  border-radius: 1.2rem 1.2rem 0 0;
+  padding: 0.8rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
+  z-index: 201;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+#menu-sheet.open {
+  transform: translateY(0);
+}
+
+/* drag handle pill */
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: #3a3a3a;
+  border-radius: 2px;
+  margin: 0 auto 1.2rem;
+}
+
+/* generic row */
+.sheet-item {
+  display: flex;
+  align-items: center;
+  padding: 0.9rem 0;
+  color: var(--fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  font-size: 1rem;
+  text-decoration: none;
+  width: 100%;
+}
+
+/* version label — dimmed */
+.sheet-version {
+  opacity: 0.4;
+  font-size: 0.85rem;
+}
+
+/* divider line */
+.sheet-divider {
+  height: 1px;
+  background: #222;
+}
+
+/* button rows */
+.sheet-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  justify-content: space-between;
+}
+
+.sheet-chevron {
+  font-size: 0.85rem;
+  opacity: 0.55;
+  transition: transform 0.2s;
+}
+#sheet-about.active .sheet-chevron {
+  transform: rotate(180deg);
+}
+
+/* about text area — below all menu items */
+#about-content {
+  padding: 0.5rem 0 0.5rem;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  opacity: 0.72;
+}
+#about-content p {
+  margin: 0 0 0.75rem;
+}
+#about-content a {
+  color: var(--fg);
+  text-decoration: none;
+  opacity: 0.55;
+  font-size: 0.82rem;
+}
+#about-content a:hover { opacity: 1; }
+
+/* -------- SUPPORT BUTTONS -------- */
+.sheet-support-btns[hidden] { display: none; }
+
+.sheet-support-btns {
+  padding-bottom: 0.85rem;
+  display: flex;
+  gap: 0.65rem;
+}
+
+.support-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 0;
+  border: 1px solid rgba(255, 180, 60, 0.45);
+  border-radius: 0.55rem;
+  color: var(--fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  font-size: 0.92rem;
+  text-decoration: none;
+  background: rgba(255, 163, 26, 0.07);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.support-btn:hover {
+  background: rgba(255, 163, 26, 0.18);
+  border-color: rgba(255, 180, 60, 0.75);
+}
