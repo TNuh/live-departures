@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Live Abfahrten International v1.5 -->
+<!-- Live Abfahrten International v2.0 b1 -->
 <html lang="de">
 <head>
   <meta charset="UTF-8">
@@ -38,8 +38,11 @@
   </div>
 </div>
 
-  <!-- ICON TOOLBAR (Umgebung / Suche) -->
+  <!-- ICON TOOLBAR (Zurück / Umgebung / Suche) -->
   <div class="icon-toolbar-wrap">
+    <button id="back-to-favs" class="back-link is-hidden" type="button">
+      <span class="back-chevron">‹</span> <span id="back-label">Favoriten</span>
+    </button>
     <div class="icon-toolbar">
       <button id="btn-near" class="icon-btn" type="button" aria-label="Nearby">
         <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
@@ -83,10 +86,6 @@
 
   <!-- BOARD VIEW (Abfahrtstafel) -->
   <div id="board-view" hidden>
-    <button id="back-to-favs" class="back-link" type="button">
-      <span class="back-chevron">‹</span> <span id="back-label">Favoriten</span>
-    </button>
-
     <!-- CURRENT STATION -->
     <div class="station-area">
       <div id="currentStationWrap">
@@ -101,7 +100,7 @@
       <thead>
         <tr>
           <th id="th-line">Line</th>
-          <th id="th-station"><div class="th-station-inner"><span id="th-station-label">Station</span><button id="toggle-track" class="chip small">Track</button></div></th>
+          <th id="th-station"><span id="th-station-label">Station</span></th>
           <th id="th-time">
             <button id="toggle-time" class="chip small">Departure</button>
           </th>
@@ -118,7 +117,7 @@
   </div>
 
   <div id="footer-info">
-    <span>© 2026 Martin · Live Departures v1.5</span>
+    <span>© 2026 Martin · Live Departures v2.0 b1</span>
     <span id="datasource-note" style="display:none;"></span>
   </div>
 
@@ -158,7 +157,7 @@
   <!-- BOTTOM SHEET -->
   <div id="menu-sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-item sheet-version">Live Departures v1.5</div>
+    <div class="sheet-item sheet-version">Live Departures v2.0 b1</div>
     <div class="sheet-divider"></div>
     <button class="sheet-item sheet-btn" id="sheet-lang">
       <span id="sheet-lang-label">Sprache</span>
@@ -239,7 +238,7 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const VERSION = "v1.5";
+    const VERSION = "v2.0 b1";
 
     // Feedback mailto
     document.getElementById("sheet-feedback").href =

@@ -152,22 +152,27 @@ Transitous platform data availability depends on the underlying GTFS feed. Major
 
 ## Changelog
 
-### v1.5 — iOS v2.0 parity batch + home screen redesign (current — 2026-08-16)
+### v2.0 b1 — iOS v2.0 parity batch + home screen redesign (current — 2026-08-16)
+
+First beta released for testing; version bumped from v1.5. Beta builds increment (b2, b3, …) until v2.0 final.
 
 Feature-parity work (see `CONCEPT.md` for the original gap analysis against the native iOS app):
 - **CH real-time fix** — displayed time now prefers `prognosis.departure` over the scheduled time (see CH Data Flow above)
 - **Favorites: MRU algorithm** — replaced "most-used + 14-day decay" with pure most-recently-used ranking, and the per-country cap is now fully independent (was a single shared pool of 7)
 - **DE duplicate-trip fix** — `dedupeTripDuplicates()` collapses real-time/schedule-copy duplicates (see Transitous Data Flow above)
-- **Accent color picker** — orange/white, menu-driven, implemented via `--accent-rgb`/`--accent-dim-rgb` CSS custom properties threaded through the whole stylesheet
-- **Live-tracking indicator** — pulsing green dot on train/S-Bahn rows with real-time data
+- **Accent color picker** — orange/white, menu-driven, implemented via `--accent-rgb`/`--accent-dim-rgb` CSS custom properties threaded through the whole stylesheet; now also synced on `about.html`, which doesn't load `main.js` and previously always rendered orange regardless of the chosen theme
+- **Live-tracking indicator** — pulsing green dot on train/S-Bahn rows with real-time data; icon now uses `currentColor` instead of a hardcoded hex so it follows the accent theme too
 - **Intermediate-stops sheet** — tap a train/S-Bahn row for a sheet of subsequent stops with lazy per-stop platform lookup
 - **Compliance** — added the required Transitous source-list link and OSM/ODbL attribution to `about.html`
 
 Home screen redesign (matches the native app's `FavouritesListView`):
-- Replaced the Favoriten/Umgebung/Andere button row + favorites dropdown with a favorites list as the default screen, an icon toolbar (nearby/search), and a separate board view with a back link
+- Replaced the Favoriten/Umgebung/Andere button row + favorites dropdown with a favorites list as the default screen, an icon toolbar (nearby/search), and a separate board view with a back link (moved into the same row as the toolbar icons)
 - Country switching moved from a header toggle into the hamburger menu only ("Land"/"Country" row), matching the native app; the header now just shows the active country as a flag
-- Added automatic DE rail/nahverkehr favorite splitting (`splitDeFavourite()`) with an indented sub-row, and delete (`✕`) per favorite
+- Added automatic DE rail/nahverkehr favorite splitting (`splitDeFavourite()`) with an indented sub-row
+- **Swipe-to-delete** (iOS-style) replaces the old inline ✕ button on favorite rows — swipe left to reveal a "Löschen"/"Delete" action, tap to confirm. Built on Pointer Events with a tuned dead-zone/axis-lock so plain taps on real touchscreens don't trigger it
+- Platform/track info is now always shown below each departure (removed the separate "Gleis"/"Track" toggle button, matching the native app)
 - Added a Welcome empty-state view (icon, description, feature highlights, nearby/search buttons)
+- Departure table switched to `table-layout: fixed` with explicit column widths — fixes a bug where a long destination name could grow the table past its own width and push the departure-time column off-screen on narrow viewports
 - `about.html` copy updated throughout to match the new UI
 
 ### v1.5 (2026-04-19)

@@ -1,4 +1,4 @@
-/* Live Departure International v1.5 */
+/* Live Departure International v2.0 b1 */
 
 /* Farben & Basis */
 :root{
@@ -108,7 +108,11 @@ font-size: 1.05rem;          /* was 1.15rem */
   width: min(980px, 94vw);
   margin: 0 auto 0.4rem;
   border-collapse: collapse;
-  table-layout: auto;   /* was fixed */
+  /* fixed: Spaltenbreiten kommen strikt aus den th-Breiten unten, nicht aus dem
+     Inhalt. Mit "auto" konnte eine lange Zieltext-Zeile die Tabelle über ihre
+     eigene width hinaus wachsen lassen und die Abfahrt-Spalte rechts aus dem
+     sichtbaren Bereich schieben (kein horizontales Scrollen im responsive Layout). */
+  table-layout: fixed;
 }
 
 /* Header cells */
@@ -183,26 +187,25 @@ font-size: 1.05rem;          /* was 1.15rem */
   text-overflow: ellipsis;
 }
 
-/* Linie column (left) */
+/* Linie column (left) — feste Breite, damit table-layout:fixed sie nicht überspringt */
 .departure-table th:nth-child(1),
 .departure-table td:nth-child(1) {
   text-align: left;
-  min-width: 3ch;
-  max-width: 14ch;
-  width: 1%;
+  width: 4.8rem;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   padding-right: 0.3rem;
 }
 
-/* Ziel column (middle) */
+/* Ziel column (middle) — keine eigene width: bekommt bei fixed layout automatisch
+   den kompletten Rest der Tabellenbreite (Linie + Abfahrt sind fest, diese Spalte flexibel) */
 .departure-table th:nth-child(2),
 .departure-table td:nth-child(2) {
-  width: 100%;
   text-align: left;
 }
 
 .departure-table td:nth-child(2) {
-  max-width: 40ch;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -212,13 +215,12 @@ font-size: 1.05rem;          /* was 1.15rem */
   overflow: visible;
 }
 
-/* Abfahrt column (right) */
+/* Abfahrt column (right) — feste Breite, reicht für "23:59" / "1:05" + !/✕-Marker */
 .departure-table th:nth-child(3),
 .departure-table td:nth-child(3) {
   text-align: right;
   white-space: nowrap;
-  min-width: 3ch;
-  width: auto;
+  width: 4.6rem;
 }
 
 /* Mobile Feinschliff */
@@ -227,11 +229,6 @@ font-size: 1.05rem;          /* was 1.15rem */
   .display-chip #currentStationLabel{font-size:1rem; padding:.4rem .9rem}
   table{margin-bottom:1.5rem}
   input,select,textarea{font-size:16px}
-
-  .departure-table th:nth-child(2),
-  .departure-table td:nth-child(2){
-    max-width:28ch;
-  }
 }
 
 /* Defensive stacking (prevents accidental overlap) */
@@ -250,27 +247,6 @@ font-size: 1.05rem;          /* was 1.15rem */
   pointer-events: auto;   /* ensure clicks reach JS */
 }
 
-/* Track toggle in station header */
-.th-station-inner {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-#toggle-track {
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  background: var(--chip-bg, #1a1208);
-  border: 1px solid rgb(var(--accent-dim-rgb));
-  border-radius: 0.55rem;
-  box-shadow: 0 0 0.8rem rgba(var(--accent-dim-rgb), 0.2);
-  padding: 0.1rem 0.6rem;
-  transition: background 0.2s, box-shadow 0.2s;
-  white-space: nowrap;
-}
-
-#toggle-track.active,
 .departure-table thead th #toggle-time.active {
   background: rgba(var(--accent-dim-rgb), 0.2);
   box-shadow: 0 0 1.2rem rgba(var(--accent-dim-rgb), 0.45);
@@ -500,12 +476,13 @@ tr.cancelled td {
   font-size: clamp(20px, 3.4vw, 30px);
 }
 
-/* -------- ICON TOOLBAR (Umgebung / Suche) -------- */
+/* -------- ICON TOOLBAR (Zurück / Umgebung / Suche) -------- */
 .icon-toolbar-wrap {
   width: min(980px, 94vw);
   margin: 0 auto 1rem;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .icon-toolbar {
@@ -546,16 +523,24 @@ tr.cancelled td {
 }
 
 .fav-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.6rem;
   padding: 0.85rem 0.2rem;
   cursor: pointer;
   border-bottom: 1px solid #1a1a1a;
-  transition: background 0.15s ease;
+  background: var(--bg);
+  transition: background 0.15s ease, transform 0.2s ease;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .fav-row:hover {
   background: rgba(var(--accent-rgb), 0.06);
+}
+.fav-row.dragging {
+  transition: none;
 }
 
 .fav-row-label {
@@ -584,26 +569,42 @@ tr.cancelled td {
   flex-shrink: 0;
 }
 
-.fav-delete {
-  background: none;
-  border: none;
-  color: #ff5c5c;
-  opacity: 0.55;
-  font-size: 0.85rem;
-  cursor: pointer;
-  padding: 0.2rem 0.4rem;
-  flex-shrink: 0;
-  transition: opacity 0.15s ease;
+/* Linkswisch zum Löschen (wie iOS) statt eines dauerhaft sichtbaren ✕ — verhindert
+   Fehllöschungen, da Wischen + Antippen des Buttons zwei bewusste Schritte sind. */
+.fav-row-wrap {
+  position: relative;
+  overflow: hidden;
 }
-.fav-delete:hover { opacity: 1; }
+
+.fav-row-delete-action {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #c0392b;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+.fav-row-delete-action:active {
+  background: #a5311f;
+}
 
 /* -------- BACK LINK (Abfahrtstafel → Favoriten) -------- */
+/* Lebt im selben Flex-Row wie die Icon-Toolbar (Umgebung/Suche), damit beide auf
+   gleicher Höhe stehen. visibility statt display, damit die Icons rechtsbündig
+   bleiben, auch wenn der Link (auf der Favoriten-Ansicht) ausgeblendet ist. */
 .back-link {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  width: min(980px, 94vw);
-  margin: 0 auto 0.4rem;
   background: none;
   border: none;
   color: var(--fg);
@@ -612,8 +613,13 @@ tr.cancelled td {
   opacity: 0.7;
   cursor: pointer;
   padding: 0.3rem 0.2rem;
+  margin: 0 -0.2rem 0 0;
 }
 .back-link:hover { opacity: 1; }
+.back-link.is-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
 .back-chevron { font-size: 1rem; }
 
 /* -------- WELCOME / LEERER ZUSTAND -------- */

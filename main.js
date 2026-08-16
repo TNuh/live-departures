@@ -1,4 +1,4 @@
-// main.js – Echtzeit-Abfahrten International v2.0
+// main.js – Echtzeit-Abfahrten International v2.0 b1
 
 // ----------------- Konstanten & Elemente -----------------
 const MAX_FAVORITES = 7;
@@ -11,7 +11,7 @@ const chipLabel = document.getElementById("currentStationLabel") || null;
 
 const tramIcon = `
 <svg viewBox="0 0 24 24" width="20" height="20"
-     fill="none" stroke="#FFB43C" stroke-width="1.6"
+     fill="none" stroke="currentColor" stroke-width="1.6"
      stroke-linecap="round" stroke-linejoin="round"
      style="opacity:0.9; vertical-align:middle;">
   <rect x="6" y="4" width="12" height="12" rx="2" ry="2"></rect>
@@ -36,7 +36,6 @@ if (chip) {
 
 let displayAbsolute = false; // Start: Minuten
 let currentStation = null;
-let showTracks = false;
 
 // --- Smart status system (slow API → user info) ---
 let slowTimer = null;
@@ -163,8 +162,6 @@ function applyTranslations() {
 
   const thStationLabel = document.getElementById("th-station-label");
   if (thStationLabel) thStationLabel.textContent = T.colStation;
-  const toggleTrackLabel = document.getElementById("toggle-track");
-  if (toggleTrackLabel) toggleTrackLabel.textContent = T.colTrack;
 
   const toggle = document.getElementById("toggle-time");
   if (toggle) {
@@ -508,7 +505,115 @@ function getCountryAwarePlaceholder(lang, country) {
 
 // ----------------- Favoriten-/Ergebnislisten (geteiltes Zeilen-Markup) -----------------
 
+// Linkswisch zum Löschen (wie iOS): der Wisch legt den roten Löschen-Button hinter der
+// Zeile frei, ein zweiter Tap darauf löscht. Zwei bewusste Schritte statt eines
+// dauerhaft sichtbaren ✕ — verhindert Fehllöschungen. Nur eine Zeile ist je offen.
+const SWIPE_ACTION_WIDTH = 84; // px — muss zu .fav-row-delete-action in style.css passen
+let openSwipeRow = null;
+
+function closeOpenSwipe() {
+  if (openSwipeRow) {
+    openSwipeRow.classList.remove("swiped");
+    openSwipeRow.style.transform = "";
+    openSwipeRow = null;
+  }
+}
+
+document.addEventListener("pointerdown", e => {
+  if (openSwipeRow && !openSwipeRow.contains(e.target)) closeOpenSwipe();
+});
+
+// Hängt Pointer-basiertes Wisch-zum-Löschen an eine Zeile — funktioniert per Touch
+// (iOS/Android) und per Maus-Drag (Desktop), da Pointer Events beides vereinen.
+//
+// Die Auswahl-Entscheidung (auswählen / Wisch öffnen / Wisch schliessen) fällt
+// synchron in pointerup — nicht im nachfolgenden, separaten click-Event. Ein Tap auf
+// echten Touchscreens erzeugt fast immer ein paar Pixel Zittern; wenn dieses Zittern
+// knapp den Wisch-Modus antriggert (kurzes Aufblitzen des Löschen-Buttons) und man sich
+// erst beim späteren click auf ein "moved"-Flag verlässt, kann die Auswahl trotzdem
+// durchgehen (Race zwischen den beiden Events). Hier gibt es nur eine Entscheidung,
+// click wird danach nur noch als Duplikat unterdrückt.
+function makeRowSwipeable(row, onSelect, onDelete) {
+  let startX = 0, startY = 0, baseX = 0, dragging = false, horizontal = false, suppressClick = false;
+
+  row.addEventListener("pointerdown", e => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    startX = e.clientX;
+    startY = e.clientY;
+    baseX = row.classList.contains("swiped") ? -SWIPE_ACTION_WIDTH : 0;
+    dragging = true;
+    horizontal = false;
+  });
+
+  row.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (!horizontal) {
+      const adx = Math.abs(dx), ady = Math.abs(dy);
+      // Grosszügiger toter Bereich (Zittern beim blossen Antippen ignorieren) + klare
+      // Horizontal-Dominanz nötig, bevor überhaupt auf Wisch-Modus committed wird.
+      if (adx < 20 && ady < 20) return;
+      if (adx < ady * 1.6) { dragging = false; return; } // eindeutig vertikal → Scrollen gewinnt
+      horizontal = true;
+      row.classList.add("dragging");
+      if (openSwipeRow && openSwipeRow !== row) closeOpenSwipe();
+    }
+    const next = Math.min(0, Math.max(-SWIPE_ACTION_WIDTH, baseX + dx));
+    row.style.transform = `translateX(${next}px)`;
+    e.preventDefault();
+  });
+
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    row.classList.remove("dragging");
+    suppressClick = true;
+
+    if (!horizontal) {
+      // Reiner Tap ohne relevante Bewegung — sofort entscheiden, nicht auf das
+      // nachfolgende synthetische click-Event warten.
+      if (row.classList.contains("swiped")) closeOpenSwipe();
+      else onSelect(e);
+      return;
+    }
+
+    const dx = e.clientX - startX;
+    const finalX = Math.min(0, Math.max(-SWIPE_ACTION_WIDTH, baseX + dx));
+    if (finalX <= -SWIPE_ACTION_WIDTH / 2) {
+      row.classList.add("swiped");
+      row.style.transform = `translateX(-${SWIPE_ACTION_WIDTH}px)`;
+      openSwipeRow = row;
+    } else {
+      row.classList.remove("swiped");
+      row.style.transform = "";
+      if (openSwipeRow === row) openSwipeRow = null;
+    }
+  }
+  row.addEventListener("pointerup", endDrag);
+  row.addEventListener("pointercancel", endDrag);
+
+  // Nur noch ein Sicherheitsnetz, falls aus irgendeinem Grund kein pointerup ankam
+  // (z. B. fehlende Pointer-Events-Unterstützung) — sonst reines Duplikat-Unterdrücken.
+  row.addEventListener("click", e => {
+    if (suppressClick) { suppressClick = false; return; }
+    if (row.classList.contains("swiped")) { closeOpenSwipe(); return; }
+    onSelect(e);
+  });
+
+  const del = document.createElement("button");
+  del.className = "fav-row-delete-action";
+  del.type = "button";
+  del.textContent = currentLang === "de" ? "Löschen" : "Delete";
+  del.addEventListener("click", e => {
+    e.stopPropagation();
+    onDelete();
+  });
+  return del;
+}
+
 // Baut eine tappbare Zeile mit Chevron — für Favoriten, Nahverkehr-Unterzeile, Umgebung- und Sucheergebnisse.
+// deletable Zeilen kommen in einem .fav-row-wrap zurück (Linkswisch legt den Löschen-Button dahinter frei).
 function buildListRow({ label, secondary = false, deletable = false, onDelete = null, onSelect }) {
   const row = document.createElement("div");
   row.className = secondary ? "fav-row fav-subrow" : "fav-row";
@@ -518,23 +623,19 @@ function buildListRow({ label, secondary = false, deletable = false, onDelete = 
   labelEl.textContent = label;
   row.appendChild(labelEl);
 
-  if (deletable) {
-    const del = document.createElement("button");
-    del.className = "fav-delete";
-    del.type = "button";
-    del.setAttribute("aria-label", currentLang === "de" ? "Löschen" : "Delete");
-    del.textContent = "✕";
-    del.addEventListener("click", e => {
-      e.stopPropagation();
-      onDelete();
-    });
-    row.appendChild(del);
-  }
-
   const chevron = document.createElement("span");
   chevron.className = "fav-chevron";
   chevron.textContent = "›";
   row.appendChild(chevron);
+
+  if (deletable) {
+    const deleteBtn = makeRowSwipeable(row, onSelect, onDelete);
+    const wrap = document.createElement("div");
+    wrap.className = "fav-row-wrap";
+    wrap.appendChild(deleteBtn);
+    wrap.appendChild(row);
+    return wrap;
+  }
 
   row.addEventListener("click", onSelect);
   return row;
@@ -546,6 +647,7 @@ function renderFavouritesView() {
   const listEl = document.getElementById("fav-list");
   const welcomeEl = document.getElementById("welcome-view");
   if (!listEl || !welcomeEl) return;
+  openSwipeRow = null; // DOM wird neu gebaut, alte Referenz wäre stale
   listEl.innerHTML = "";
 
   if (!groups.length) {
@@ -596,8 +698,10 @@ function renderFavouritesView() {
 function showBoardView() {
   const favView = document.getElementById("favourites-view");
   const boardView = document.getElementById("board-view");
+  const backLink = document.getElementById("back-to-favs");
   if (favView) favView.hidden = true;
   if (boardView) boardView.hidden = false;
+  if (backLink) backLink.classList.remove("is-hidden");
 }
 
 function showFavouritesView() {
@@ -605,8 +709,10 @@ function showFavouritesView() {
   currentStation = null;
   const favView = document.getElementById("favourites-view");
   const boardView = document.getElementById("board-view");
+  const backLink = document.getElementById("back-to-favs");
   if (boardView) boardView.hidden = true;
   if (favView) favView.hidden = false;
+  if (backLink) backLink.classList.add("is-hidden");
   const noteEl = document.getElementById("datasource-note");
   if (noteEl) noteEl.style.display = "none";
   renderFavouritesView();
@@ -900,7 +1006,7 @@ if (displayAbsolute) {
   const showsLiveBadge = !isFerry && !isBusOrTram && isRealtime && !isCancelled;
 
   const footnoteParts = [];
-  if (showTracks && plannedPlatform) {
+  if (plannedPlatform) {
     footnoteParts.push(`▸ ${trackLabel} ${platformDisplay}`);
   }
   if (showsLiveBadge) {
@@ -1375,16 +1481,6 @@ if (toggleTimeBtn) {
     toggleTimeBtn.textContent = displayAbsolute ? T.absolute : T.colTime;
     toggleTimeBtn.classList.toggle("active", displayAbsolute);
 
-    if (currentStation) fetchDepartures(currentStation);
-  });
-}
-
-// Gleis/Track anzeigen umschalten
-const toggleTrackBtn = document.getElementById("toggle-track");
-if (toggleTrackBtn) {
-  toggleTrackBtn.addEventListener("click", () => {
-    showTracks = !showTracks;
-    toggleTrackBtn.classList.toggle("active", showTracks);
     if (currentStation) fetchDepartures(currentStation);
   });
 }
