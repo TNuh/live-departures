@@ -1,27 +1,31 @@
-# Live Departures — v1.5
+# Live Departures
 
 A lightweight, PWA-ready real-time departure board for public transport in Switzerland and Germany. No app store, no registration, no tracking — runs entirely in the browser.
 
-**Live:** [live-departures.app](https://live-departures.app)
+**Live:** [live-departures.app](https://live-departures.app) · **Source:** [github.com/TNuh/live-departures](https://github.com/TNuh/live-departures)
 
 ---
 
 ## Features
 
 - **Real-time departures** for Swiss stops (SBB, ZVV, BLS, and all other operators) and German stops (via Transitous / DELFI GTFS)
-- **Country toggle** — 🇨🇭 / 🇩🇪 flag button in the title bar switches between Switzerland and Germany; favorites, autocomplete, and nearby all respond to the active country
-- **Favorites** — up to 7 stations per country, ranked by usage, stored locally; stale entries (>14 days unused) demoted automatically
-- **Nearby** — geolocation-based station discovery (CH: transport.opendata.ch; DE: Transitous map/stops)
-- **Other** — autocomplete search for any station in the active country; DE results filtered to `country === "DE"`
+- **Favorites home screen** — the app opens directly into a list of your favorite stations (no dropdown); tap to open the departure board, tap `✕` to delete an entry, "‹ Favorites" returns to the list. Shows a Welcome empty state with feature highlights when there are no favorites yet
+- **Country selection** — chosen from the hamburger menu under "Land"/"Country"; the active country is shown as a flag next to the title. Favorites, search, and nearby all respond to it
+- **Favorites storage** — up to 7 stations per country (independent pools), ranked purely by most-recently-used; mixed German stations (rail + local transit at the same stop) are auto-detected and split into a primary row plus an indented "↳ Nahverkehr"/"Local transit" sub-row, each with its own filtered fetch
+- **Nearby** — paper-plane icon in the toolbar opens a sheet with geolocation-based station discovery (CH: transport.opendata.ch; DE: Transitous map/stops); Nominatim reverse geocoding confirms the detected location matches the active country first
+- **Search** — magnifying-glass icon in the toolbar opens a sheet with autocomplete search for any station in the active country; DE results filtered to `country === "DE"`
+- **Intermediate stops** — tapping a train/S-Bahn row opens a sheet with all subsequent stops and times; tapping a stop reveals its platform where available (CH: lazy per-stop lookup against the stationboard/arrival board; DE: already included in the trip response, just hidden until tapped)
+- **Live-tracking indicator** — a pulsing green dot marks train/S-Bahn rows with real-time data (CH: presence of a delay + prognosis; DE: the `realTime` field)
+- **Accent color** — orange or white, chosen in the menu, applied app-wide via CSS custom properties (`--accent-rgb` / `--accent-dim-rgb`)
 - **Language toggle** — DE / EN in hamburger menu, persisted across sessions
 - **Time display toggle** — relative (`3'` / `1:05`) or absolute clock time; tram icon shown when departure is under 60 seconds in both modes
 - **PWA** — installable on iOS and Android home screen, works standalone
-- **Smart status** — slow/retry/fail feedback during API delays
+- **Smart status** — slow/retry/fail feedback during API delays on the departure board
 - **Delay indicator** — `!` in red before departure time when delayed
 - **Cancellation indicator** — red `✕` before departure time, row struck through and dimmed when trip is cancelled
 - **Platform / track display** — toggleable via "Gleis"/"Track" button in header; shows "Gleis" for trains, "Kante"/"Bay" for trams/buses, "Anleger"/"Pier" for ferries
 - **Platform change indicator** — when the actual platform differs from the scheduled one, the original is shown struck through and the new platform is shown in red
-- **Auto-refresh** — silently reloads departures every 60 seconds; pauses when app is in background, resumes on return; tap the station name chip to refresh immediately
+- **Auto-refresh** — silently reloads departures every 60 seconds while the board view is open; pauses when app is in background, resumes on return; tap the station name chip to refresh immediately
 - **Data source label** — "Daten: Transitous" / "Data: Transitous" shown in footer for DE departures
 
 ---
@@ -51,8 +55,10 @@ A lightweight, PWA-ready real-time departure board for public transport in Switz
 
 | Country | API | Endpoints used |
 |---------|-----|----------------|
-| 🇨🇭 CH | [transport.opendata.ch](https://transport.opendata.ch) | `/v1/stationboard`, `/v1/locations` |
-| 🇩🇪 DE | [Transitous](https://transitous.org) (MOTIS) | `/api/v1/geocode`, `/api/v1/map/stops`, `/api/v5/stoptimes` |
+| 🇨🇭 CH | [transport.opendata.ch](https://transport.opendata.ch) | `/v1/stationboard` (departures, and re-queried with `datetime`/`type=arrival` for per-stop platform lookups in the intermediate-stops sheet), `/v1/locations` |
+| 🇩🇪 DE | [Transitous](https://transitous.org) (MOTIS) | `/api/v1/geocode`, `/api/v1/map/stops`, `/api/v5/stoptimes`, `/api/v5/trip` (intermediate stops + platform for the stops sheet) |
+
+Both countries also call [Nominatim](https://nominatim.openstreetmap.org) (`/reverse`) once per nearby-search to confirm the detected location matches the active country.
 
 No API key required for either source.
 
@@ -60,24 +66,35 @@ No API key required for either source.
 
 ## How It Works
 
-### Modes
+### Screens
 
-- **Favorites** (`btn-fav`) — loads the dropdown with stored favorites filtered by active country; auto-loads the most-used on startup
-- **Nearby** (`btn-near`) — uses `navigator.geolocation`; CH queries transport.opendata.ch, DE queries Transitous with a ~1 km bounding box
-- **Other** (`btn-other`) — shows an autocomplete input; CH uses `/v1/locations`, DE uses `/api/v1/geocode` filtered to `type === "STOP" && country === "DE"`
+The app is a single page that swaps two top-level views (`#favourites-view` / `#board-view`) plus three bottom sheets, no router:
+
+- **Favorites (home)** — `renderFavouritesView()` groups stored favorites for the active country via `groupFavourites()` and renders them as tappable rows (`buildListRow()`). Empty state (`#welcome-view`) shows when there are no favorites for the active country.
+- **Board** (`#board-view`) — the departure table for the currently selected station. Entered via `selectStation()`, which is the single entry point used by favorite rows, nearby results, search results, and the welcome-view buttons. `showFavouritesView()` tears it back down (stops auto-refresh, clears `currentStation`, re-renders the list).
+- **Nearby sheet** (`#nearby-sheet`) — opened by the paper-plane icon; `fetchNearby()` uses `navigator.geolocation`, CH queries transport.opendata.ch, DE queries Transitous with a ~1 km bounding box. Nominatim reverse geocoding confirms the detected location matches the active country before fetching stops.
+- **Search sheet** (`#search-sheet`) — opened by the magnifying-glass icon; debounced (250 ms) autocomplete. CH uses `/v1/locations`, DE uses `/api/v1/geocode` filtered to `type === "STOP" && country === "DE"`.
+- **Intermediate-stops sheet** (`#stops-sheet`) — opened by tapping a train/S-Bahn row with `hasStopsData`. CH stops come from the stationboard's `passList` (already present in the departures response); platform per stop is fetched lazily on tap via `fetchChPlatform()`, matched by category+number within a 6-minute window (arrival board for the last stop). DE stops come from `fetchDeTripStops()` (`/api/v5/trip`), which already includes platform — tapping just reveals it, no extra fetch.
+
+Country switching itself only lives in the hamburger menu (`selectCountry()`, wired to the two flag buttons under "Land"/"Country"); there's no toggle on the home screen. Switching resets `currentStation` and re-renders the favorites list for the new country.
 
 ### Favorites Storage
 
 Favorites are stored in `localStorage` under key `favourites_v2` as a JSON array:
 
 ```json
-[{ "name": "Zürich HB", "id": null, "provider": "CH", "count": 5, "lastUsed": 1744123456789 }]
+[{ "name": "Zürich HB", "id": null, "provider": "CH", "count": 5, "lastUsed": 1744123456789, "transportFilter": null }]
 ```
 
-- `provider`: `"CH"` or `"DE"` — used to filter the list when the country changes
+- `provider`: `"CH"` or `"DE"` — favorites are two fully independent pools, capped at 7 each; CH and DE never compete for the same slots
 - `id`: `null` for CH (name-based lookup), GTFS stop ID string for DE (e.g. `"de-DELFI_de:01003:57819"`)
+- `transportFilter`: `null` | `"rail"` | `"nahverkehr"` — DE only. Ranked purely by `lastUsed` descending (ties broken by `count`); no time-based decay.
 
-Sorted by recency first, then `count` descending, capped at 7 entries. Entries not used within 14 days are demoted below all recent ones.
+**DE rail/nahverkehr split** — when an unfiltered DE favorite's departures turn out to contain both track-type (rail) and non-track (tram/bus) entries, `splitDeFavourite()` replaces the single favorite with two filtered ones sharing the same `stopId`. `groupFavourites()` then renders them as one row (primary = rail, or the plain entry if never split) with an indented "↳ Nahverkehr" sub-row when a `nahverkehr` counterpart exists. A filtered fetch requests more results from Transitous (`n=80` vs. `n=20`) so enough of the wanted transport type survives the client-side filter in `isTrackTypeDep()`.
+
+### CH Data Flow
+
+CH stationboard entries are rendered close to raw, but the displayed time prefers the real-time prognosis over the scheduled time: `dep.stop.prognosis.departure ?? dep.stop.departure`. Using the scheduled time alone (the previous behavior) made the imminent-departure tram icon and a delayed row's remaining lifetime track the timetable instead of the actual expected departure.
 
 ### Transitous / DE Data Flow
 
@@ -92,14 +109,18 @@ Key mapping details:
   3. `dep.routeShortName` as final fallback
   - Exception: when `displayName` contains `" – "` or `" - "` (route description pattern, e.g. `"Paris – Stuttgart"`), `tripShortName` / `routeShortName` is preferred over it
 - Destination: if `headsign` is a pure number (train number rather than city name), `dep.tripTo?.name` is used instead
-- Deduplication: when multiple GTFS feeds provide the same trip, duplicate entries sharing an identical departure timestamp are collapsed — the entry with a line number is kept, the numberless one dropped
+- Deduplication happens in two passes:
+  1. `dedupeTripDuplicates()` runs on the raw `stopTimes` before normalization — some trips are delivered twice, once with real-time tracking (e.g. line `"S14"`) and once as a pure schedule copy of the same trip (e.g. `"14"`, `realTime: false`). Matched by numeric `tripShortName` (leading zeros stripped) + identical departure timestamp; the real-time variant is kept.
+  2. After normalization, entries sharing an identical departure timestamp are collapsed if one lacks a line number — the entry with a line number is kept, the numberless one dropped (handles duplicates from multiple GTFS feeds).
 - Mode mapping: `TRAM → "T"`, `BUS/COACH → "B"`, `FERRY → "F"`, all rail/suburban/subway/aerial → `""` (falls back to line name)
 - Delay computed from diff between `departure` and `scheduledDeparture` in seconds
+- `tripId` is preserved on track-type departures for the intermediate-stops sheet (`/api/v5/trip` lookup)
+- `isRealtime` is taken from the `realTime` field (default `true`) and drives the live-tracking dot
 - Note: `mode` values are inconsistent across feeds — the same ICE train may appear as `HIGHSPEED_RAIL` in one feed and `REGIONAL_RAIL` in another; do not rely on mode to infer train type
 
 ### Retry Logic
 
-Every fetch has three timers: slow warning (2 s), retry hint (4 s), fail message (8 s). On network error, the app retries once automatically before showing a permanent fail state.
+The departure board fetch has three timers: slow warning (2 s), retry hint (4 s), fail message (8 s). On network error, the app retries once automatically before showing a permanent fail state. The nearby sheet retries once on error too, but without the staged status messages; the search sheet has no retry (a failed lookup just returns no results, matching the debounced-typing UX).
 
 ---
 
@@ -131,7 +152,25 @@ Transitous platform data availability depends on the underlying GTFS feed. Major
 
 ## Changelog
 
-### v1.5 (current — 2026-04-19)
+### v1.5 — iOS v2.0 parity batch + home screen redesign (current — 2026-08-16)
+
+Feature-parity work (see `CONCEPT.md` for the original gap analysis against the native iOS app):
+- **CH real-time fix** — displayed time now prefers `prognosis.departure` over the scheduled time (see CH Data Flow above)
+- **Favorites: MRU algorithm** — replaced "most-used + 14-day decay" with pure most-recently-used ranking, and the per-country cap is now fully independent (was a single shared pool of 7)
+- **DE duplicate-trip fix** — `dedupeTripDuplicates()` collapses real-time/schedule-copy duplicates (see Transitous Data Flow above)
+- **Accent color picker** — orange/white, menu-driven, implemented via `--accent-rgb`/`--accent-dim-rgb` CSS custom properties threaded through the whole stylesheet
+- **Live-tracking indicator** — pulsing green dot on train/S-Bahn rows with real-time data
+- **Intermediate-stops sheet** — tap a train/S-Bahn row for a sheet of subsequent stops with lazy per-stop platform lookup
+- **Compliance** — added the required Transitous source-list link and OSM/ODbL attribution to `about.html`
+
+Home screen redesign (matches the native app's `FavouritesListView`):
+- Replaced the Favoriten/Umgebung/Andere button row + favorites dropdown with a favorites list as the default screen, an icon toolbar (nearby/search), and a separate board view with a back link
+- Country switching moved from a header toggle into the hamburger menu only ("Land"/"Country" row), matching the native app; the header now just shows the active country as a flag
+- Added automatic DE rail/nahverkehr favorite splitting (`splitDeFavourite()`) with an indented sub-row, and delete (`✕`) per favorite
+- Added a Welcome empty-state view (icon, description, feature highlights, nearby/search buttons)
+- `about.html` copy updated throughout to match the new UI
+
+### v1.5 (2026-04-19)
 - **Germany via Transitous** — full DE integration: autocomplete, nearby, and departures via `api.transitous.org`; replaces defunct `v6.db.transport.rest` (DB HAFAS shutdown)
 - **Country toggle** — 🇨🇭/🇩🇪 flag button in title area; switches all three modes (Favorites, Nearby, Other) and resets current station
 - **Transitous normaliser** — `normalizeTransitousStopTimes()` maps MOTIS response format to internal schema; handles all transport modes including ferry (`"F"` → "Anleger"/"Pier")
