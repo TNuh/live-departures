@@ -1,26 +1,13 @@
-// main.js – Echtzeit-Abfahrten International v1.5
+// main.js – Echtzeit-Abfahrten International v2.0
 
 // ----------------- Konstanten & Elemente -----------------
 const MAX_FAVORITES = 7;
 
-const btnFav   = document.getElementById("btn-fav");
-const btnNear  = document.getElementById("btn-near");
-const btnOther = document.getElementById("btn-other");
-const countryToggle = document.getElementById("country-toggle");
-
-const selectWrap    = document.getElementById("fav-select");
-const stationSelect = document.getElementById("stationSelect");
-
-const acInput  = document.getElementById("stationSearch");
-const acList   = document.getElementById("ac-suggestions");
-const acWrap   = document.getElementById("ac-wrap");
-
-const tbody    = document.querySelector("#departures tbody");
-const toggleBtn= document.getElementById("toggle-time");
+const tbody     = document.querySelector("#departures tbody");
 
 // Zentrale Anzeige (optional im DOM)
-const chipWrap = document.getElementById("currentStationWrap") || null;
-const chipLabel= document.getElementById("currentStationLabel") || null;
+const chipWrap  = document.getElementById("currentStationWrap") || null;
+const chipLabel = document.getElementById("currentStationLabel") || null;
 
 const tramIcon = `
 <svg viewBox="0 0 24 24" width="20" height="20"
@@ -96,8 +83,11 @@ const i18n = {
     title: "Live Departures",
     subtitle: "Next Departure nearby",
     fav: "Favoriten",
-    near: "Umgebung",
-    other: "Andere",
+    near: "In der Nähe",
+    searchTitle: "Suche",
+    close: "Schliessen",
+    landLabel: "Land",
+    nahverkehr: "Nahverkehr",
     colLine: "Linie",
     colStation: "Ziel",
     colTime: "Abfahrt",
@@ -107,13 +97,18 @@ const i18n = {
     colPier: "Anleger",
     noDepartures: "Keine weiteren Abfahrten heute.",
     aboutLink: "Über die App",
+    accentLabel: "Akzentfarbe",
 
-    favPlaceholder: "– Favorit wählen –",
-    nearPlaceholder: "– In der Nähe wählen –",
     nearSearching: "Suche Stationen in der Nähe…",
     nearNone: "Keine Stationen in der Nähe gefunden.",
-    acLabel: "Andere Haltestelle oder Bahnhof:",
-    acPlaceholder: "Tippen, z. B. Zürich oder Berlin Hbf"
+
+    welcomeTitle: "Willkommen",
+    welcomeDesc: "Echtzeit-Abfahrten für Züge, Trams, Busse und Fähren in der Schweiz und Deutschland — ohne Konto, ohne Tracking.",
+    welcomeFeatureCountries: "Zwei Länder, wählbar im Menü",
+    welcomeFeatureSearch: "Haltestellen-Suche mit Autocomplete",
+    welcomeFeatureBoard: "Abfahrtstafel in Echtzeit",
+    welcomeSearchBtn: "Haltestelle",
+    welcomeHelpHint: "Hilfe & Erklärungen findest du im Menü oben links."
   },
 
   en: {
@@ -121,7 +116,10 @@ const i18n = {
     subtitle: "Next Departure nearby",
     fav: "Favorites",
     near: "Nearby",
-    other: "Other",
+    searchTitle: "Search",
+    close: "Close",
+    landLabel: "Country",
+    nahverkehr: "Local transit",
     colLine: "Line",
     colStation: "Station",
     colTime: "Departure",
@@ -131,43 +129,35 @@ const i18n = {
     colPier: "Pier",
     noDepartures: "No more departures today.",
     aboutLink: "About",
+    accentLabel: "Accent Color",
 
-    favPlaceholder: "– Select favorite –",
-    nearPlaceholder: "– Select nearby –",
     nearSearching: "Searching nearby stations…",
     nearNone: "No nearby stations found.",
-    acLabel: "Other station:",
-    acPlaceholder: "Type e.g. Zurich or Berlin Hbf"
+
+    welcomeTitle: "Welcome",
+    welcomeDesc: "Real-time departures for trains, trams, buses and ferries in Switzerland and Germany — no account, no tracking.",
+    welcomeFeatureCountries: "Two countries, in the menu",
+    welcomeFeatureSearch: "Stop search with autocomplete",
+    welcomeFeatureBoard: "Real-time departure board",
+    welcomeSearchBtn: "Stations",
+    welcomeHelpHint: "Find help & explanations in the menu top left."
   }
 };
 
 function applyTranslations() {
   const T = i18n[currentLang];
 
-  // --- Title + subtitle ---
   const title = document.getElementById("title-text");
   if (title) title.textContent = T.title;
 
   const subtitle = document.getElementById("subtitle-text");
   if (subtitle) subtitle.textContent = T.subtitle;
 
-  // --- Language toggle in sheet ---
   const sheetLangValue = document.getElementById("sheet-lang-value");
   if (sheetLangValue) {
     sheetLangValue.innerHTML = currentLang === "de" ? "<b>DE</b> / EN" : "DE / <b>EN</b>";
   }
 
-  // --- Mode buttons ---
-  const favBtn = document.getElementById("btn-fav");
-  if (favBtn) favBtn.textContent = `${T.fav}`;
-
-  const nearBtn = document.getElementById("btn-near");
-  if (nearBtn) nearBtn.textContent = `${T.near}`;
-
-  const otherBtn = document.getElementById("btn-other");
-  if (otherBtn) otherBtn.textContent = `${T.other}`;
-
-  // --- Table headers ---
   const thLine = document.getElementById("th-line");
   if (thLine) thLine.textContent = T.colLine;
 
@@ -176,23 +166,51 @@ function applyTranslations() {
   const toggleTrackLabel = document.getElementById("toggle-track");
   if (toggleTrackLabel) toggleTrackLabel.textContent = T.colTrack;
 
-  // --- Toggle (Abfahrt/Uhrzeit vs Departure/Time) ---
   const toggle = document.getElementById("toggle-time");
   if (toggle) {
     toggle.textContent = displayAbsolute ? T.absolute : T.colTime;
     toggle.classList.toggle("active", displayAbsolute);
   }
 
-  // --- About link ---
   const aboutLink = document.getElementById("about-link");
   if (aboutLink) aboutLink.textContent = T.aboutLink;
 
-  // --- AUTOCOMPLETE LABEL + PLACEHOLDER ---
-  const acLabel = document.querySelector(".ac-label");
-  if (acLabel) acLabel.textContent = T.acLabel;
+  const backLabel = document.getElementById("back-label");
+  if (backLabel) backLabel.textContent = T.fav;
 
-  const acInput = document.getElementById("stationSearch");
-  if (acInput) acInput.placeholder = T.acPlaceholder;
+  const nearbyTitleLabel = document.getElementById("nearby-title-label");
+  if (nearbyTitleLabel) nearbyTitleLabel.textContent = T.near;
+  const searchTitleLabel = document.getElementById("search-title-label");
+  if (searchTitleLabel) searchTitleLabel.textContent = T.searchTitle;
+  const nearbyCloseBtn = document.getElementById("nearby-close-btn");
+  if (nearbyCloseBtn) nearbyCloseBtn.textContent = T.close;
+  const searchCloseBtn = document.getElementById("search-close-btn");
+  if (searchCloseBtn) searchCloseBtn.textContent = T.close;
+
+  const searchInputEl = document.getElementById("stationSearch");
+  if (searchInputEl) searchInputEl.placeholder = getCountryAwarePlaceholder(currentLang, getPreferredCountry());
+
+  const accentLabel = document.getElementById("sheet-accent-label");
+  if (accentLabel) accentLabel.textContent = T.accentLabel;
+  const landLabel = document.getElementById("sheet-land-label");
+  if (landLabel) landLabel.textContent = T.landLabel;
+
+  const wTitle = document.getElementById("welcome-title");
+  if (wTitle) wTitle.textContent = T.welcomeTitle;
+  const wDesc = document.getElementById("welcome-desc");
+  if (wDesc) wDesc.textContent = T.welcomeDesc;
+  const wCountries = document.getElementById("welcome-feature-countries");
+  if (wCountries) wCountries.textContent = T.welcomeFeatureCountries;
+  const wSearch = document.getElementById("welcome-feature-search");
+  if (wSearch) wSearch.textContent = T.welcomeFeatureSearch;
+  const wBoard = document.getElementById("welcome-feature-board");
+  if (wBoard) wBoard.textContent = T.welcomeFeatureBoard;
+  const wSearchBtn = document.getElementById("welcome-search-btn");
+  if (wSearchBtn) wSearchBtn.textContent = T.welcomeSearchBtn;
+  const wNearbyBtn = document.getElementById("welcome-nearby-btn");
+  if (wNearbyBtn) wNearbyBtn.textContent = T.near;
+  const wHint = document.getElementById("welcome-hint");
+  if (wHint) wHint.textContent = T.welcomeHelpHint;
 }
 
 
@@ -222,7 +240,7 @@ if (type === "retry") {
 
   if (type === "nodata") {
     msg.textContent = currentLang === "de"
-      ? "Keine Daten verfügbar."
+      ? "Keine Daten verfügbar."
       : "No data available.";
   }
 }
@@ -268,14 +286,16 @@ function saveFavourites(list) {
   } catch {}
 }
 
-// Add or bump a favourite
-function saveFavourite(name, id = null, provider = "CH") {
+// Add or bump a favourite. transportFilter: null | "rail" | "nahverkehr" (DE-only —
+// unterscheidet den ungefilterten Halt von den zwei Varianten nach dem Split, siehe splitDeFavourite()).
+function saveFavourite(name, id = null, provider = "CH", transportFilter = null) {
   if (!name) return;
 
   // provider fallback
   if (!provider || (provider !== "CH" && provider !== "DE")) {
     provider = "CH";
   }
+  transportFilter = transportFilter || null;
 
   const list = loadFavourites();
   const normName = name.trim();
@@ -290,10 +310,11 @@ if (
   list.splice(0, 1);
 }
 
-  // find existing entry
+  // find existing entry (gleicher Name + Land + transportFilter)
   const entry = list.find(f =>
     f.name.toLowerCase() === normName.toLowerCase() &&
-    (f.provider || "CH") === provider
+    (f.provider || "CH") === provider &&
+    (f.transportFilter || null) === transportFilter
   );
 
   const now = Date.now();
@@ -301,56 +322,81 @@ if (
     entry.count = (entry.count || 0) + 1;
     entry.lastUsed = now;
   } else {
-    list.push({ name: normName, id, provider, count: 1, lastUsed: now });
+    list.push({ name: normName, id, provider, count: 1, lastUsed: now, transportFilter });
   }
 
-  // sort: recent entries (used within 14 days) ranked by count first,
-  // stale entries (older than 14 days) demoted below all recent ones
-  const STALE_MS = 14 * 24 * 60 * 60 * 1000;
-  const isRecent = f => (now - (f.lastUsed || 0)) < STALE_MS;
-  list.sort((a, b) => {
-    const aRecent = isRecent(a);
-    const bRecent = isRecent(b);
-    if (aRecent !== bRecent) return aRecent ? -1 : 1;
-    return (b.count - a.count) || a.name.localeCompare(b.name, "de");
-  });
-
-  // limit to 7 by dropping weakest
-  if (list.length > 7) list.pop();
-
-  saveFavourites(list);
+  // 7 pro Land — CH und DE konkurrieren nicht um dieselben Plätze
+  const sameProvider = rankFavourites(list.filter(f => (f.provider || "CH") === provider))
+    .slice(0, MAX_FAVORITES);
+  const otherProvider = list.filter(f => (f.provider || "CH") !== provider);
+  saveFavourites(sameProvider.concat(otherProvider));
 }
 
-// Return favourites sorted (recent entries first, stale demoted)
+// MRU-Sortierung: zuletzt genutzt zuerst, bei Gleichstand nach Häufigkeit
+function rankFavourites(list) {
+  return list.slice().sort((a, b) => {
+    const byLastUsed = (b.lastUsed || 0) - (a.lastUsed || 0);
+    return byLastUsed !== 0 ? byLastUsed : (b.count || 0) - (a.count || 0);
+  });
+}
+
+// Return favourites, most recently used first
 function getTopFavourites(limit = 7) {
-  const list = loadFavourites();
-  const now = Date.now();
-  const STALE_MS = 14 * 24 * 60 * 60 * 1000;
-  const isRecent = f => (now - (f.lastUsed || 0)) < STALE_MS;
-  list.sort((a, b) => {
-    const aRecent = isRecent(a);
-    const bRecent = isRecent(b);
-    if (aRecent !== bRecent) return aRecent ? -1 : 1;
-    return (b.count - a.count) || a.name.localeCompare(b.name, "de");
+  return rankFavourites(loadFavourites()).slice(0, limit);
+}
+
+// Gibt Favoriten als Gruppen zurück: Rail-Variante zuerst, Nahverkehr direkt darunter
+// (Web-Port von FavouritesStore.grouped() aus der iOS-App).
+function groupFavourites(country, limit = 7) {
+  const all = loadFavourites().filter(f => (f.provider || "CH") === country);
+  const byKey = new Map();
+  all.forEach(fav => {
+    const key = `${fav.name.toLowerCase()}-${fav.id || ""}`;
+    if (!byKey.has(key)) byKey.set(key, []);
+    byKey.get(key).push(fav);
   });
-  return list.slice(0, limit);
+
+  const groups = [];
+  byKey.forEach(entries => {
+    const rail  = entries.find(f => f.transportFilter === "rail");
+    const nahv  = entries.find(f => f.transportFilter === "nahverkehr");
+    const plain = entries.find(f => !f.transportFilter);
+    if (rail)       groups.push({ primary: rail, secondary: nahv || null });
+    else if (plain) groups.push({ primary: plain, secondary: null });
+    else if (nahv)  groups.push({ primary: nahv, secondary: null });
+  });
+
+  groups.sort((a, b) => (b.primary.lastUsed || 0) - (a.primary.lastUsed || 0));
+  return groups.slice(0, limit);
 }
 
-// Most-used favourite
-function getMostUsedFavourite() {
-  const list = getTopFavourites(1);
-  return list.length ? list[0] : null;
+// Löscht alle Varianten eines Ortes (Rail + Nahverkehr zusammen, oder den einzelnen Eintrag)
+function removeFavouritePair(name, provider) {
+  const norm = name.trim().toLowerCase();
+  saveFavourites(loadFavourites().filter(f =>
+    !(f.name.toLowerCase() === norm && (f.provider || "CH") === provider)
+  ));
 }
 
-function loadFavourite(fav) {
-  if (!fav) return;
+// Ersetzt einen ungefilterten DE-Favoriten durch zwei gefilterte Varianten (Zug + Nahverkehr) —
+// idempotent: wirkt nur, wenn genau der ungefilterte Eintrag existiert (Web-Port von
+// FavouritesStore.split() aus der iOS-App).
+function splitDeFavourite(name, stopId) {
+  const list = loadFavourites();
+  const normName = name.trim().toLowerCase();
+  const idx = list.findIndex(f =>
+    f.name.toLowerCase() === normName && (f.provider || "CH") === "DE" && !f.transportFilter
+  );
+  if (idx === -1) return;
+  list.splice(idx, 1);
 
-  const { id, name, provider } = fav;
-if (provider === "DE" && id) {
-    fetchDepartures({ id, name });
-  } else {
-    fetchDepartures({ id: null, name });
-  }
+  const now = Date.now();
+  list.push({ name: name.trim(), id: stopId, provider: "DE", count: 1, lastUsed: now, transportFilter: "rail" });
+  list.push({ name: name.trim(), id: stopId, provider: "DE", count: 1, lastUsed: now - 1, transportFilter: "nahverkehr" });
+
+  const de = rankFavourites(list.filter(f => (f.provider || "CH") === "DE")).slice(0, MAX_FAVORITES);
+  const ch = list.filter(f => (f.provider || "CH") !== "DE");
+  saveFavourites(de.concat(ch));
 }
 
 // --- Preferred Country Handling ---
@@ -368,15 +414,13 @@ function setPreferredCountry(code) {
   } catch {}
 }
 
-function getCountryToggleLabel(code) {
-  return code === "DE" ? "🇩🇪" : "🇨🇭";
-}
+const landFlagButtons = document.querySelectorAll(".land-flag-btn");
 
-function updateCountryToggle() {
-  if (!countryToggle) return;
+function updateCountryUI() {
   const country = getPreferredCountry();
-  countryToggle.textContent = getCountryToggleLabel(country);
-  countryToggle.title = country === "DE" ? "Deutschland" : "Schweiz";
+  const flagEl = document.getElementById("title-flag");
+  if (flagEl) flagEl.textContent = country === "DE" ? "🇩🇪" : "🇨🇭";
+  landFlagButtons.forEach(btn => btn.classList.toggle("active", btn.dataset.country === country));
 }
 
 function stationCountry(station) {
@@ -384,16 +428,48 @@ function stationCountry(station) {
   return station.country || station.provider || (station.id ? "DE" : "CH");
 }
 
-function switchCountry() {
-  const next = getPreferredCountry() === "CH" ? "DE" : "CH";
-  setPreferredCountry(next);
-  updateCountryToggle();
-  currentStation = null;
-  updateStationChip("");
-  const noteEl = document.getElementById("datasource-note");
-  if (noteEl) noteEl.style.display = "none";
-  forceFullUIRedraw();
+// Explizite Länderauswahl — nur im Menü (wie iOS), zeigt danach wieder die Favoritenliste,
+// da eine gerade offene Abfahrtstafel zum falschen Land gehören könnte.
+function selectCountry(code) {
+  if (getPreferredCountry() === code) return;
+  setPreferredCountry(code);
+  updateCountryUI();
+  showFavouritesView();
 }
+
+landFlagButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    selectCountry(btn.dataset.country);
+    if (typeof window.closeMenu === "function") window.closeMenu();
+  });
+});
+
+// --- Accent Theme (Orange / Weiss) ---
+const ACCENT_KEY = "accentTheme";
+const accentSwatches = document.querySelectorAll(".accent-swatch");
+
+function getAccentTheme() {
+  try {
+    const v = localStorage.getItem(ACCENT_KEY);
+    return v === "white" ? "white" : "orange";
+  } catch {
+    return "orange";
+  }
+}
+
+function applyAccentTheme(theme) {
+  document.documentElement.dataset.accent = theme;
+  accentSwatches.forEach(sw => sw.classList.toggle("active", sw.dataset.accent === theme));
+}
+
+function setAccentTheme(theme) {
+  try { localStorage.setItem(ACCENT_KEY, theme); } catch {}
+  applyAccentTheme(theme);
+}
+
+accentSwatches.forEach(sw => {
+  sw.addEventListener("click", () => setAccentTheme(sw.dataset.accent));
+});
 
 // ----------------- Anzeige-Helfer -----------------
 function updateStationChip(name) {
@@ -430,78 +506,121 @@ function getCountryAwarePlaceholder(lang, country) {
   }
 }
 
-// options: Array<string> ODER Array<{value,label}>
-function fillSelect(options, placeholderText) {
-  stationSelect.innerHTML = "";
-  const ph = document.createElement("option");
-  ph.value = "";
-  ph.textContent = placeholderText || "— Station wählen —";
-  stationSelect.appendChild(ph);
+// ----------------- Favoriten-/Ergebnislisten (geteiltes Zeilen-Markup) -----------------
 
-  if (options && options.length) {
-    if (typeof options[0] === "string") {
-      options.forEach(v => {
-        const opt = document.createElement("option");
-        opt.value = v;
-        opt.textContent = prettyStationLabel(v);
-        stationSelect.appendChild(opt);
-      });
-    } else {
-      options.forEach(o => {
-        const opt = document.createElement("option");
-        opt.value = o.value;
-        opt.textContent = o.label ?? prettyStationLabel(o.value);
-        stationSelect.appendChild(opt);
-      });
-    }
-  }
-  stationSelect.selectedIndex = 0; // auf Platzhalter
-}
+// Baut eine tappbare Zeile mit Chevron — für Favoriten, Nahverkehr-Unterzeile, Umgebung- und Sucheergebnisse.
+function buildListRow({ label, secondary = false, deletable = false, onDelete = null, onSelect }) {
+  const row = document.createElement("div");
+  row.className = secondary ? "fav-row fav-subrow" : "fav-row";
 
-// Aktiven Modus schalten
-function setMode(active) {
-  [btnFav, btnNear, btnOther].forEach(b => b.classList.remove("active"));
-  if (active === "fav")   btnFav.classList.add("active");
-  if (active === "near")  btnNear.classList.add("active");
-  if (active === "other") btnOther.classList.add("active");
+  const labelEl = document.createElement("span");
+  labelEl.className = "fav-row-label";
+  labelEl.textContent = label;
+  row.appendChild(labelEl);
 
-  document.body.classList.toggle('mode-other', active === 'other');
-
-  if (active === "other") {
-    if (selectWrap) selectWrap.style.display = "none";
-    if (acWrap) {
-      acWrap.style.display = "flex";
-      acWrap.style.justifyContent = "center";
-      acWrap.classList.add("is-open");
-    }
-  } else {
-    if (acWrap) {
-      acWrap.style.display = "none";
-      acWrap.classList.remove("is-open");
-    }
-  }
-}
-
-// Robust: Dropdown sofort öffnen (iOS/WebKit freundlich)
-function openStationSelect() {
-  const tryOpen = () => {
-    try {
-      if (typeof stationSelect.showPicker === "function") {
-        stationSelect.showPicker();
-      } else {
-        stationSelect.focus();
-        stationSelect.click();
-        const evt = new MouseEvent("mousedown", {bubbles:true, cancelable:true, view:window});
-        stationSelect.dispatchEvent(evt);
-      }
-    } catch {}
-  };
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      [0,70,140].forEach(d => setTimeout(tryOpen, d));
+  if (deletable) {
+    const del = document.createElement("button");
+    del.className = "fav-delete";
+    del.type = "button";
+    del.setAttribute("aria-label", currentLang === "de" ? "Löschen" : "Delete");
+    del.textContent = "✕";
+    del.addEventListener("click", e => {
+      e.stopPropagation();
+      onDelete();
     });
+    row.appendChild(del);
+  }
+
+  const chevron = document.createElement("span");
+  chevron.className = "fav-chevron";
+  chevron.textContent = "›";
+  row.appendChild(chevron);
+
+  row.addEventListener("click", onSelect);
+  return row;
+}
+
+function renderFavouritesView() {
+  const country = getPreferredCountry();
+  const groups = groupFavourites(country);
+  const listEl = document.getElementById("fav-list");
+  const welcomeEl = document.getElementById("welcome-view");
+  if (!listEl || !welcomeEl) return;
+  listEl.innerHTML = "";
+
+  if (!groups.length) {
+    welcomeEl.hidden = false;
+    listEl.hidden = true;
+    return;
+  }
+  welcomeEl.hidden = true;
+  listEl.hidden = false;
+
+  const T = i18n[currentLang];
+  groups.forEach(group => {
+    const wrap = document.createElement("div");
+    wrap.className = "fav-group";
+
+    wrap.appendChild(buildListRow({
+      label: prettyStationLabel(group.primary.name),
+      deletable: true,
+      onDelete: () => {
+        removeFavouritePair(group.primary.name, group.primary.provider || "CH");
+        renderFavouritesView();
+      },
+      onSelect: () => selectStation({
+        id: group.primary.id, name: group.primary.name,
+        country: group.primary.provider || "CH",
+        transportFilter: group.primary.transportFilter || null
+      })
+    }));
+
+    if (group.secondary) {
+      wrap.appendChild(buildListRow({
+        label: `↳ ${T.nahverkehr}`,
+        secondary: true,
+        onSelect: () => selectStation({
+          id: group.secondary.id, name: group.secondary.name,
+          country: group.secondary.provider || "CH",
+          transportFilter: group.secondary.transportFilter || null
+        })
+      }));
+    }
+
+    listEl.appendChild(wrap);
   });
 }
+
+// ----------------- Bildschirme: Favoriten vs. Abfahrtstafel -----------------
+
+function showBoardView() {
+  const favView = document.getElementById("favourites-view");
+  const boardView = document.getElementById("board-view");
+  if (favView) favView.hidden = true;
+  if (boardView) boardView.hidden = false;
+}
+
+function showFavouritesView() {
+  stopAutoRefresh();
+  currentStation = null;
+  const favView = document.getElementById("favourites-view");
+  const boardView = document.getElementById("board-view");
+  if (boardView) boardView.hidden = true;
+  if (favView) favView.hidden = false;
+  const noteEl = document.getElementById("datasource-note");
+  if (noteEl) noteEl.style.display = "none";
+  renderFavouritesView();
+}
+
+function selectStation(station) {
+  closeNearbySheet();
+  closeSearchSheet();
+  showBoardView();
+  fetchDepartures(station, {});
+}
+
+const backToFavsBtn = document.getElementById("back-to-favs");
+if (backToFavsBtn) backToFavsBtn.addEventListener("click", showFavouritesView);
 
 // ----------------- Data helpers -----------------
 function formatLine(category, number){
@@ -527,10 +646,50 @@ function cleanDestinationForDisplay(line, dest) {
   return dest;
 }
 
+// Klassifiziert eine Abfahrt: Fähre / Tram-Bus / Zug-S-Bahn ("track" = Gleis-Typ).
+// Gemeinsam genutzt von der Zeilen-Darstellung, der Zwischenstationen-Berechtigung und
+// der DE-Rail/Nahverkehr-Filterung.
+function classifyDepartureKind(dep, line) {
+  const isFerry = dep.category === "F";
+  const isBusOrTram = !isFerry && (dep.category === "T" || dep.category === "B" || /^\d{1,3}$/.test(line));
+  return { isFerry, isBusOrTram, isTrack: !isFerry && !isBusOrTram };
+}
+
+function isTrackTypeDep(dep) {
+  const line = dep.category ? formatLine(dep.category, dep.number) : (dep.line?.name || "");
+  return classifyDepartureKind(dep, line).isTrack;
+}
+
+// Manche Trips werden von Transitous doppelt geliefert — einmal mit Echtzeit-Tracking
+// (z. B. Linie "S14"), einmal als reine Fahrplan-Kopie derselben Fahrt (z. B. "14", realTime:false).
+// Erkennbar an identischem tripShortName (bis auf führende Nullen) + identischer Abfahrtszeit.
+// Bei einem Duplikat wird die realtime-Variante behalten.
+function dedupeTripDuplicates(stopTimes) {
+  const indexForKey = new Map();
+  const out = [];
+  for (const dep of stopTimes) {
+    const raw = dep.tripShortName;
+    const departureKey = dep.place?.departure || dep.place?.scheduledDeparture;
+    if (!raw || !/^\d+$/.test(raw) || !departureKey) {
+      out.push(dep);
+      continue;
+    }
+    const key = `${parseInt(raw, 10)}|${departureKey}`;
+    if (indexForKey.has(key)) {
+      const idx = indexForKey.get(key);
+      if (dep.realTime && !out[idx].realTime) out[idx] = dep;
+    } else {
+      indexForKey.set(key, out.length);
+      out.push(dep);
+    }
+  }
+  return out;
+}
 
 // ----------------- Transitous normalizer -----------------
-function normalizeTransitousStopTimes(stopTimes) {
+function normalizeTransitousStopTimes(rawStopTimes) {
   const modeMap = { TRAM: "T", BUS: "B", COACH: "B", FERRY: "F" };
+  const stopTimes = dedupeTripDuplicates(rawStopTimes);
   return stopTimes.map(dep => {
     const cat = modeMap[dep.mode] || "";
     const place = dep.place || {};
@@ -564,7 +723,9 @@ function normalizeTransitousStopTimes(stopTimes) {
       number: lineName,
       line: { name: lineName },
       to: destination,
-      cancelled: dep.cancelled || dep.tripCancelled || false
+      cancelled: dep.cancelled || dep.tripCancelled || false,
+      tripId: dep.tripId || null,
+      isRealtime: dep.realTime !== false
     };
   }).filter((entry, _i, arr) => {
     if (entry.number) return true;
@@ -577,18 +738,19 @@ async function fetchDepartures(station, options = {}) {
   if (!station) return;
 
   const stationObj = typeof station === "string"
-    ? { id: null, name: station, country: "CH" }
+    ? { id: null, name: station, country: "CH", transportFilter: null }
     : {
         id: station.id ?? null,
         name: station.name ?? String(station),
-        country: station.country || null
+        country: station.country || null,
+        transportFilter: station.transportFilter || null
       };
 
   // Land robust bestimmen
   let country = stationObj.country || (stationObj.id ? "DE" : "CH");
 
   // Favorit mit Provider passend zum Land sichern
-  saveFavourite(stationObj.name, stationObj.id, country);
+  saveFavourite(stationObj.name, stationObj.id, country, stationObj.transportFilter);
 
   currentStation = stationObj;
   updateStationChip(stationObj.name || stationObj);
@@ -616,7 +778,10 @@ failTimer = setTimeout(() => showStatus("fail"), 8000);
         tbody.innerHTML = `<tr><td colspan="3">Kein gueltiger DB-Stop-ID gefunden.</td></tr>`;
         return;
       }
-      url = `https://api.transitous.org/api/v5/stoptimes?stopId=${encodeURIComponent(id)}&n=20&language=de`;
+      // Gefilterte (Rail/Nahverkehr) Favoriten fragen mehr Ergebnisse ab, damit nach dem
+      // clientseitigen Filtern genug übrig bleibt (Web-Port von DepartureBoardViewModel).
+      const n = stationObj.transportFilter ? 80 : 20;
+      url = `https://api.transitous.org/api/v5/stoptimes?stopId=${encodeURIComponent(id)}&n=${n}&language=de`;
     } else {
       // CH
       url = `https://transport.opendata.ch/v1/stationboard?station=${encodeURIComponent(stationObj.name)}&limit=20`;
@@ -642,13 +807,30 @@ if (noteEl) {
   noteEl.style.display = isDE ? "inline" : "none";
 }
 
-const list = country === "DE"
+let list = country === "DE"
   ? normalizeTransitousStopTimes(data.stopTimes || [])
   : (data.stationboard || data.departures || []);
+
+// Gemischten DE-Halt automatisch aufteilen (einmalig, idempotent) — nur beim ungefilterten
+// Fetch prüfen, sonst würde jeder gefilterte Fetch erneut zu splitten versuchen.
+if (country === "DE" && !stationObj.transportFilter) {
+  const hasTrack = list.some(isTrackTypeDep);
+  const hasOther = list.some(dep => !isTrackTypeDep(dep));
+  if (hasTrack && hasOther) splitDeFavourite(stationObj.name, stationObj.id);
+}
+
+if (country === "DE" && stationObj.transportFilter) {
+  list = list.filter(dep => stationObj.transportFilter === "rail" ? isTrackTypeDep(dep) : !isTrackTypeDep(dep));
+}
+
 const T = i18n[currentLang];
 list.forEach(dep => {
   const now = new Date();
-  const t = new Date(dep.stop?.departure || dep.plannedWhen || dep.when);
+  // Echtzeit-Prognose als Anzeigezeit, Fahrplanzeit nur als Fallback (Tram-Icon/Zeilen-Lebensdauer
+  // richten sich sonst nach der geplanten statt der erwarteten Abfahrt bei CH-Verspätungen).
+  // Für DE ist stop.departure bereits realtime||scheduled (siehe normalizeTransitousStopTimes) —
+  // dort existiert stop.prognosis.departure nicht, der Fallback greift transparent.
+  const t = new Date(dep.stop?.prognosis?.departure || dep.stop?.departure || dep.plannedWhen || dep.when);
   const diffMin = Math.round((t - now) / 60000);
 
   // Abfahrten, die deutlich in der Vergangenheit liegen, ausblenden
@@ -701,19 +883,54 @@ if (displayAbsolute) {
   const platformChanged = !!(newPlatform && newPlatform !== plannedPlatform);
   const delayMark = (hasDelay && when !== tramIcon) ? '<span class="delay-mark">!</span> ' : '';
   const cancelMark = isCancelled ? '<span class="cancel-mark">✕</span> ' : '';
-  const isFerry = dep.category === "F";
-  const isBusOrTram = !isFerry && (dep.category === "T" || dep.category === "B" || /^\d{1,3}$/.test(line));
+  const { isFerry, isBusOrTram } = classifyDepartureKind(dep, line);
   const trackLabel = isFerry ? T.colPier : (isBusOrTram ? T.colBay : T.colTrack);
   const platformDisplay = platformChanged
     ? `<span class="platform-old">${plannedPlatform}</span> <span class="platform-new">${newPlatform}</span>`
     : plannedPlatform;
-  const trackLine = (showTracks && plannedPlatform)
-    ? `<div class="track-cell">▸ ${trackLabel} ${platformDisplay}</div>`
+
+  // Live-Tracking: nur bei Zug/S-Bahn — bei Tram/Bus ist die Live-Quote pro Stadt praktisch
+  // konstant (ganzes Netz live oder gar nicht), das Badge liefert dort pro Zeile kein Signal.
+  // CH: kein explizites realtime-Flag wie bei DE — delay + prognosis.departure sind nur gesetzt,
+  // wenn tatsächlich eine Echtzeit-Prognose vorliegt. DE: normalizeTransitousStopTimes liefert
+  // bereits dep.isRealtime (aus dem `realTime`-Feld, Default true).
+  const isRealtime = dep.isRealtime !== undefined
+    ? dep.isRealtime
+    : (dep.stop?.delay !== undefined && dep.stop?.delay !== null && dep.stop?.prognosis?.departure != null);
+  const showsLiveBadge = !isFerry && !isBusOrTram && isRealtime && !isCancelled;
+
+  const footnoteParts = [];
+  if (showTracks && plannedPlatform) {
+    footnoteParts.push(`▸ ${trackLabel} ${platformDisplay}`);
+  }
+  if (showsLiveBadge) {
+    footnoteParts.push('<span class="live-dot" title="Live" aria-label="Live"></span>');
+  }
+  const footnoteLine = footnoteParts.length
+    ? `<div class="track-cell">${footnoteParts.join(" &nbsp; ")}</div>`
     : '';
+
+  // Zwischenstationen-Sheet: nur Zug/S-Bahn, und nur wenn die API überhaupt Folgehalte liefert
+  // (CH: passList aus dem Stationboard, erste Position ist die Abfahrtsstation selbst und hat
+  // keinen `name` → wird beim Filtern natürlich ausgeschlossen; DE: tripId für den Trip-Endpoint).
+  const isTrainType = !isFerry && !isBusOrTram;
+  const chStops = (isTrainType && country === "CH")
+    ? (dep.passList || []).filter(p => p.station && p.station.name)
+    : null;
+  const hasStopsData = isTrainType && (country === "CH" ? !!(chStops && chStops.length) : !!dep.tripId);
+  const chevron = hasStopsData ? '<span class="row-chevron">›</span>' : '';
 
   const tr = document.createElement("tr");
   if (isCancelled) tr.classList.add("cancelled");
-  tr.innerHTML = `<td>${line}</td><td>${dest}${trackLine}</td><td class="right">${cancelMark}${delayMark}${when}</td>`;
+  tr.innerHTML = `<td>${line}</td><td>${dest}${chevron}${footnoteLine}</td><td class="right">${cancelMark}${delayMark}${when}</td>`;
+  if (hasStopsData) {
+    tr.classList.add("has-stops");
+    tr.addEventListener("click", () => openStopsSheet({
+      line, dest, departure: t, country,
+      chCategory: dep.category, chNumber: dep.number, chStops,
+      tripId: dep.tripId
+    }));
+  }
   tbody.appendChild(tr);
 });
 
@@ -742,29 +959,57 @@ if (displayAbsolute) {
 }
 }
 
-// --- Nähe ------------------------------------------------------------
-async function fetchNearby() {
-  setMode("near");
+// --- Nähe-Sheet --------------------------------------------------------
+const nearbyBackdrop = document.getElementById("nearby-backdrop");
+const nearbySheet    = document.getElementById("nearby-sheet");
+const nearbyListEl   = document.getElementById("nearby-list");
+
+function openNearbySheet() {
+  if (!nearbySheet || !nearbyBackdrop) return;
+  nearbySheet.classList.add("open");
+  nearbyBackdrop.classList.add("open");
+  fetchNearby();
+}
+
+function closeNearbySheet() {
+  if (nearbySheet)    nearbySheet.classList.remove("open");
+  if (nearbyBackdrop) nearbyBackdrop.classList.remove("open");
+}
+
+if (nearbyBackdrop) nearbyBackdrop.addEventListener("click", closeNearbySheet);
+const nearbyCloseBtnEl = document.getElementById("nearby-close-btn");
+if (nearbyCloseBtnEl) nearbyCloseBtnEl.addEventListener("click", closeNearbySheet);
+
+function renderNearbyMessage(text) {
+  if (!nearbyListEl) return;
+  nearbyListEl.innerHTML = `<div class="stop-empty">${text}</div>`;
+}
+
+function renderNearbyResults(stations) {
+  if (!nearbyListEl) return;
   const T = i18n[currentLang];
-  tbody.innerHTML = `<tr><td colspan="3">${T.nearSearching}</td></tr>`;
+  if (!stations.length) {
+    renderNearbyMessage(T.nearNone);
+    return;
+  }
+  nearbyListEl.innerHTML = "";
+  stations.forEach(s => {
+    nearbyListEl.appendChild(buildListRow({
+      label: prettyStationLabel(s.name),
+      onSelect: () => selectStation({ id: s.id, name: s.name, country: s.provider })
+    }));
+  });
+}
+
+async function fetchNearby() {
+  const T = i18n[currentLang];
+  renderNearbyMessage(T.nearSearching);
   window._nearbyRetried = false;
 
-  // --- Smart status timers (Nearby) ---
-hideStatus();
-
-// Slow after 2 seconds
-slowTimer = setTimeout(() => showStatus("slow"), 2000);
-
-// Retry hint after 4 seconds
-retryTimer = setTimeout(() => showStatus("retry"), 4000);
-
-// Total fail after 8 seconds
-failTimer = setTimeout(() => showStatus("fail"), 8000);
-
   if (!navigator.geolocation) {
-    tbody.innerHTML = `<tr><td colspan="3">${currentLang === "de" 
-    ? "Geolocation nicht verfügbar." 
-    : "Geolocation not available."}</td></tr>`;
+    renderNearbyMessage(currentLang === "de"
+      ? "Geolocation nicht verfügbar."
+      : "Geolocation not available.");
     return;
   }
 
@@ -783,14 +1028,10 @@ failTimer = setTimeout(() => showStatus("fail"), 8000);
             const geoData = await geoRes.json();
             const detectedCountry = (geoData.address?.country_code || "").toUpperCase();
             if (detectedCountry && detectedCountry !== country) {
-              clearTimeout(slowTimer); clearTimeout(retryTimer); clearTimeout(failTimer);
-              hideStatus();
               const flag = detectedCountry === "CH" ? "🇨🇭" : detectedCountry === "DE" ? "🇩🇪" : "";
-              tbody.innerHTML = `<tr><td colspan="3" style="white-space:normal">${
-                currentLang === "de"
-                  ? `Du befindest dich nicht in ${country === "DE" ? "Deutschland" : "der Schweiz"}. Bitte zuerst ${flag} auswählen.`
-                  : `You are not in ${country === "DE" ? "Germany" : "Switzerland"}. Please switch to ${flag} first.`
-              }</td></tr>`;
+              renderNearbyMessage(currentLang === "de"
+                ? `Du befindest dich nicht in ${country === "DE" ? "Deutschland" : "der Schweiz"}. Bitte zuerst ${flag} auswählen.`
+                : `You are not in ${country === "DE" ? "Germany" : "Switzerland"}. Please switch to ${flag} first.`);
               return;
             }
           }
@@ -827,199 +1068,316 @@ failTimer = setTimeout(() => showStatus("fail"), 8000);
             .map(s => ({ id: s.stopId, name: s.name, provider: "DE" }));
         }
 
-        clearTimeout(slowTimer);
-        clearTimeout(retryTimer);
-        clearTimeout(failTimer);
-        hideStatus();
-
-        const opts = stations.map(s => ({
-          value: JSON.stringify({ id: s.id, name: s.name, provider: s.provider }),
-          label: s.name.replace(/^Zürich[ ,]+/, "")
-        }));
-
-        const T = i18n[currentLang];
-        fillSelect(opts, T.nearPlaceholder);
-        if (selectWrap) selectWrap.style.display = "flex";
+        renderNearbyResults(stations);
       } catch {
-  clearTimeout(slowTimer);
-  clearTimeout(retryTimer);
-  clearTimeout(failTimer);
-
-  // Retry once
-  if (!window._nearbyRetried) {
-    window._nearbyRetried = true;
-    showStatus("retry");
-    await new Promise(r => setTimeout(r, 500));
-    return fetchNearby(); // auto-retry
-  }
-
-  // Final fail
-  window._nearbyRetried = false;
-  tbody.innerHTML = "";
-  showStatus("fail");
-}
+        // Retry once
+        if (!window._nearbyRetried) {
+          window._nearbyRetried = true;
+          await new Promise(r => setTimeout(r, 500));
+          return fetchNearby(); // auto-retry
+        }
+        window._nearbyRetried = false;
+        renderNearbyMessage(currentLang === "de"
+          ? "Echtzeitdaten momentan gestört."
+          : "Realtime data temporarily unavailable.");
+      }
     },
     _err => {
-      tbody.innerHTML = `<tr><td colspan="3">${currentLang === "de" 
-      ? "Standort konnte nicht bestimmt werden."
-      : "Could not determine location."}</td></tr>`;
+      renderNearbyMessage(currentLang === "de"
+        ? "Standort konnte nicht bestimmt werden."
+        : "Could not determine location.");
     },
     { enableHighAccuracy: true, timeout: 8000 }
   );
 }
 
-// === Andere (Other) handlers ===
-(() => {
-  const btnOther = document.getElementById("btn-other");
-  const wrap     = document.getElementById("ac-wrap");
-  const inputEl  = document.getElementById("stationSearch");
-  const listEl   = document.getElementById("ac-suggestions");
+// ----------------- Zwischenstationen-Sheet -----------------
+const stopsBackdrop = document.getElementById("stops-backdrop");
+const stopsSheet    = document.getElementById("stops-sheet");
+const stopsList     = document.getElementById("stops-list");
 
-  if (!btnOther || !wrap || !inputEl || !listEl) return;
+function nilIfEmpty(s) { return s ? s : null; }
 
-  // --- helper: debounce ---
-  const debounce = (fn, ms = 200) => {
-    let t;
-    return (...a) => {
-      clearTimeout(t);
-      t = setTimeout(() => fn(...a), ms);
-    };
-  };
-
-  // --- fetch station suggestions ---
-  async function fetchSuggestions(q) {
-    if (!q || q.trim().length < 2) return [];
-    const country = getPreferredCountry();
-    try {
-      if (country === "CH") {
-        const url = `https://transport.opendata.ch/v1/locations?type=station&query=${encodeURIComponent(q.trim())}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        const stations = (data.stations || data.locations || []).filter(s => s && s.name);
-        return stations.map(s => ({ id: null, name: s.name }));
-      } else {
-        const url = `https://api.transitous.org/api/v1/geocode?text=${encodeURIComponent(q.trim())}&lang=de`;
-        const res = await fetch(url);
-        if (!res.ok) return [];
-        const j = await res.json();
-        return (Array.isArray(j) ? j : [])
-          .filter(s => s && s.type === "STOP" && s.country === "DE" && s.name && s.id)
-          .map(s => ({ id: s.id, name: s.name }));
-      }
-    } catch {
-      return [];
-    }
-  }
-
-  // --- render suggestions ---
-  function render(list) {
-    listEl.innerHTML = "";
-    list.forEach(st => {
-      const li = document.createElement("li");
-      li.textContent = st.name;
-      li.className = "ac-item";
-      li.dataset.id = st.id || "";
-      li.dataset.name = st.name;
-      li.addEventListener("click", () => pick(st));
-      listEl.appendChild(li);
-    });
-    listEl.hidden = list.length === 0;
-  }
-
-function pick(station) {
-  if (!station) return;
-  try {
-    const country = getPreferredCountry();
-
-    window.fetchDepartures(
-      { id: station.id || null, name: station.name, country },
-      {}
-    );
-  } catch {}
-  inputEl.value = "";
-  listEl.innerHTML = "";
-  listEl.hidden = true;
-  wrap.style.display = "none";
+function closeStopsSheet() {
+  if (stopsSheet)    stopsSheet.classList.remove("open");
+  if (stopsBackdrop) stopsBackdrop.classList.remove("open");
 }
 
-  // --- input typing ---
-  inputEl.addEventListener("input", debounce(async () => {
-    const list = await fetchSuggestions(inputEl.value);
-    render(list);
+if (stopsBackdrop) stopsBackdrop.addEventListener("click", closeStopsSheet);
+const stopsCloseBtn = document.getElementById("stops-close-btn");
+if (stopsCloseBtn) stopsCloseBtn.addEventListener("click", closeStopsSheet);
+
+// CH: Gleis eines Zwischenhalts lazy nachladen (nur bei Tap) — Suche im Stationboard
+// (bzw. bei der Endstation in der Ankunftstafel) der Zwischenstation, gematcht über
+// Kategorie+Nummer innerhalb eines 6-Minuten-Fensters (verhindert Fehltreffer bei
+// Linien, die mehrfach täglich verkehren).
+async function fetchChPlatform(stationName, category, number, aroundDate, isDestination) {
+  const q = new Date(aroundDate.getTime() - 3 * 60000);
+  const pad = n => String(n).padStart(2, "0");
+  const datetime = `${q.getFullYear()}-${pad(q.getMonth() + 1)}-${pad(q.getDate())} ${pad(q.getHours())}:${pad(q.getMinutes())}`;
+  const params = new URLSearchParams({ station: stationName, datetime, limit: "16" });
+  if (isDestination) params.set("type", "arrival");
+  try {
+    const res = await fetch(`https://transport.opendata.ch/v1/stationboard?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const entries = data.stationboard || data.departures || [];
+    let best = null, bestDiff = Infinity;
+    for (const entry of entries) {
+      if (entry.category !== category || entry.number !== number) continue;
+      const raw = entry.stop?.departure;
+      if (!raw) continue;
+      const diff = Math.abs(new Date(raw) - aroundDate);
+      if (diff < bestDiff) { bestDiff = diff; best = entry; }
+    }
+    if (!best || bestDiff > 6 * 60000) return null;
+    return nilIfEmpty(best.stop?.prognosis?.platform) || nilIfEmpty(best.stop?.platform);
+  } catch {
+    return null;
+  }
+}
+
+// DE: alle Folgehalte inkl. Gleis kommen in einem Rutsch vom Trip-Endpoint — kein
+// separater Fetch pro Zwischenhalt nötig, nur ein lokales Reveal bei Tap.
+async function fetchDeTripStops(tripId, afterDate) {
+  try {
+    const res = await fetch(`https://api.transitous.org/api/v5/trip?tripId=${encodeURIComponent(tripId)}&language=de`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const leg = (data.legs || [])[0];
+    if (!leg) return [];
+    const result = (leg.intermediateStops || [])
+      .filter(s => s.name && s.scheduledDeparture)
+      .map(s => ({
+        name: s.name,
+        departure: new Date(s.scheduledDeparture),
+        platform: nilIfEmpty(s.track) || nilIfEmpty(s.scheduledTrack)
+      }))
+      .filter(s => s.departure > afterDate);
+    if (leg.to?.name) {
+      result.push({
+        name: leg.to.name,
+        departure: leg.to.scheduledArrival ? new Date(leg.to.scheduledArrival) : null,
+        platform: nilIfEmpty(leg.to.track) || nilIfEmpty(leg.to.scheduledTrack)
+      });
+    }
+    return result;
+  } catch {
+    return [];
+  }
+}
+
+function renderStopsList(stops, info) {
+  stopsList.innerHTML = "";
+
+  if (!stops.length) {
+    const empty = document.createElement("div");
+    empty.className = "stop-empty";
+    empty.textContent = currentLang === "de"
+      ? "Dieser Zug fährt direkt zum Ziel ohne Zwischenstationen."
+      : "This train runs directly to its destination with no intermediate stops.";
+    stopsList.appendChild(empty);
+    return;
+  }
+
+  stops.forEach((stop, i) => {
+    const row = document.createElement("div");
+    row.className = "stop-row";
+
+    const name = document.createElement("span");
+    name.className = "stop-name";
+    name.textContent = stop.name;
+
+    const meta = document.createElement("span");
+    meta.className = "stop-meta";
+
+    const platformEl = document.createElement("span");
+    platformEl.className = "stop-platform";
+
+    const timeEl = document.createElement("span");
+    timeEl.className = "stop-time";
+    timeEl.textContent = stop.departure
+      ? stop.departure.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : "";
+
+    meta.appendChild(platformEl);
+    meta.appendChild(timeEl);
+    row.appendChild(name);
+    row.appendChild(meta);
+
+    if (info.country === "DE") {
+      if (stop.platform) {
+        row.classList.add("tappable");
+        const chev = document.createElement("span");
+        chev.className = "stop-chevron";
+        chev.textContent = "▾";
+        platformEl.appendChild(chev);
+        row.addEventListener("click", () => {
+          platformEl.textContent = (currentLang === "de" ? "Gleis " : "Platform ") + stop.platform;
+        }, { once: true });
+      }
+    } else if (stop.departure) {
+      row.classList.add("tappable");
+      const chev = document.createElement("span");
+      chev.className = "stop-chevron";
+      chev.textContent = "▾";
+      platformEl.appendChild(chev);
+      const isDestination = i === stops.length - 1;
+      row.addEventListener("click", async () => {
+        if (row.dataset.done) return;
+        row.dataset.done = "1";
+        platformEl.textContent = "…";
+        const platform = await fetchChPlatform(stop.name, info.chCategory, info.chNumber, stop.departure, isDestination);
+        platformEl.textContent = platform ? (currentLang === "de" ? "Gleis " : "Platform ") + platform : "";
+      });
+    }
+
+    stopsList.appendChild(row);
+  });
+}
+
+function openStopsSheet(info) {
+  if (!stopsSheet || !stopsBackdrop) return;
+
+  document.getElementById("stops-title-label").textContent = currentLang === "de" ? "Halte" : "Stops";
+  document.getElementById("stops-close-btn").textContent = currentLang === "de" ? "Schliessen" : "Close";
+  document.getElementById("stops-info-line").textContent = info.line;
+  document.getElementById("stops-info-time").textContent =
+    info.departure.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  document.getElementById("stops-info-dest").textContent = info.dest;
+  document.getElementById("stops-info-arrival").textContent = "";
+
+  stopsSheet.classList.add("open");
+  stopsBackdrop.classList.add("open");
+
+  const showArrival = stops => {
+    const last = stops[stops.length - 1];
+    if (last?.departure) {
+      document.getElementById("stops-info-arrival").textContent =
+        last.departure.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+  };
+
+  if (info.country === "CH") {
+    const stops = (info.chStops || []).map(p => ({
+      name: p.station.name,
+      departure: (p.departure || p.arrival) ? new Date(p.departure || p.arrival) : null
+    }));
+    renderStopsList(stops, info);
+    showArrival(stops);
+  } else {
+    stopsList.innerHTML = "";
+    const loading = document.createElement("div");
+    loading.className = "stop-empty";
+    loading.textContent = currentLang === "de" ? "Lädt…" : "Loading…";
+    stopsList.appendChild(loading);
+    fetchDeTripStops(info.tripId, info.departure).then(stops => {
+      renderStopsList(stops, info);
+      showArrival(stops);
+    });
+  }
+}
+
+// ----------------- Such-Sheet -----------------
+const searchBackdrop  = document.getElementById("search-backdrop");
+const searchSheet     = document.getElementById("search-sheet");
+const searchResultsEl = document.getElementById("search-results");
+const searchInput     = document.getElementById("stationSearch");
+
+function openSearchSheet() {
+  if (!searchSheet || !searchBackdrop) return;
+  searchSheet.classList.add("open");
+  searchBackdrop.classList.add("open");
+  if (searchInput) {
+    searchInput.value = "";
+    searchInput.placeholder = getCountryAwarePlaceholder(currentLang, getPreferredCountry());
+    requestAnimationFrame(() => requestAnimationFrame(() => searchInput.focus()));
+  }
+  if (searchResultsEl) searchResultsEl.innerHTML = "";
+}
+
+function closeSearchSheet() {
+  if (searchSheet)    searchSheet.classList.remove("open");
+  if (searchBackdrop) searchBackdrop.classList.remove("open");
+}
+
+if (searchBackdrop) searchBackdrop.addEventListener("click", closeSearchSheet);
+const searchCloseBtnEl = document.getElementById("search-close-btn");
+if (searchCloseBtnEl) searchCloseBtnEl.addEventListener("click", closeSearchSheet);
+
+const debounce = (fn, ms = 200) => {
+  let t;
+  return (...a) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...a), ms);
+  };
+};
+
+async function fetchStationSuggestions(q) {
+  if (!q || q.trim().length < 2) return [];
+  const country = getPreferredCountry();
+  try {
+    if (country === "CH") {
+      const url = `https://transport.opendata.ch/v1/locations?type=station&query=${encodeURIComponent(q.trim())}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const stations = (data.stations || data.locations || []).filter(s => s && s.name);
+      return stations.map(s => ({ id: null, name: s.name, provider: "CH" }));
+    } else {
+      const url = `https://api.transitous.org/api/v1/geocode?text=${encodeURIComponent(q.trim())}&lang=de`;
+      const res = await fetch(url);
+      if (!res.ok) return [];
+      const j = await res.json();
+      return (Array.isArray(j) ? j : [])
+        .filter(s => s && s.type === "STOP" && s.country === "DE" && s.name && s.id)
+        .map(s => ({ id: s.id, name: s.name, provider: "DE" }));
+    }
+  } catch {
+    return [];
+  }
+}
+
+function renderSearchResults(stations) {
+  if (!searchResultsEl) return;
+  searchResultsEl.innerHTML = "";
+  stations.forEach(s => {
+    searchResultsEl.appendChild(buildListRow({
+      label: s.name,
+      onSelect: () => selectStation({ id: s.id, name: s.name, country: s.provider })
+    }));
+  });
+}
+
+if (searchInput) {
+  searchInput.addEventListener("input", debounce(async () => {
+    const results = await fetchStationSuggestions(searchInput.value);
+    renderSearchResults(results);
   }, 250));
 
-  // --- key handling ---
-  inputEl.addEventListener("keydown", e => {
-    if (e.key === "Escape") listEl.hidden = true;
+  searchInput.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeSearchSheet();
     if (e.key === "Enter") {
       e.preventDefault();
-      const first = listEl.querySelector("li");
-      if (first) {
-        const st = { id: first.dataset.id || null, name: first.dataset.name };
-        pick(st);
-      }
+      const first = searchResultsEl?.querySelector(".fav-row");
+      if (first) first.click();
     }
   });
-
-  // --- button click (open input) ---
-  btnOther.addEventListener("click", () => {
-    setMode("other");
-    wrap.style.display = "block";
-   inputEl.placeholder = getCountryAwarePlaceholder(currentLang, getPreferredCountry());
-    requestAnimationFrame(() => requestAnimationFrame(() => inputEl.focus()));
-  });
-})(); // closes the IIFE
-
+}
 
 // ----------------- Events -----------------
 
+const toggleTimeBtn = document.getElementById("toggle-time");
+if (toggleTimeBtn) {
+  toggleTimeBtn.addEventListener("click", () => {
+    displayAbsolute = !displayAbsolute;
 
-stationSelect.addEventListener("change", () => {
-  const val = stationSelect.value;
-  if (!val) return;
-  try {
-    const fav = JSON.parse(val);
-    loadFavourite(fav);
-  } catch {
-    fetchDepartures(val, {});
-  }
-  selectWrap.style.display = "none";
-});
+    const T = i18n[currentLang];
+    toggleTimeBtn.textContent = displayAbsolute ? T.absolute : T.colTime;
+    toggleTimeBtn.classList.toggle("active", displayAbsolute);
 
-btnNear.addEventListener("click", () => {
-  fetchNearby();
-});
-
-btnFav.addEventListener("click", () => {
-  setMode("fav");
-
-const country = getPreferredCountry();
-const favs = getTopFavourites().filter(f => (f.provider || "CH") === country);
-const options = favs.map(f => {
-  let name = f.name;
-  if (/^HB$/i.test(name)) name = "Zürich HB";
-  else if (/^Zürich[, ]/i.test(name) && !/Zürich HB/i.test(name)) {
-    name = name.replace(/^Zürich[, ]*/i, "");
-  }
-  return { value: JSON.stringify(f), label: name };
-});
-const T = i18n[currentLang];
-fillSelect(options, T.favPlaceholder);
-
-  if (selectWrap) selectWrap.style.display = "flex";
-});
-
-// Abfahrt/Uhrzeit umschalten
-document.getElementById("toggle-time").addEventListener("click", () => {
-  displayAbsolute = !displayAbsolute;
-
-  const T = i18n[currentLang]; // get correct language texts
-  const timeBtn = document.getElementById("toggle-time");
-  timeBtn.textContent = displayAbsolute ? T.absolute : T.colTime;
-  timeBtn.classList.toggle("active", displayAbsolute);
-
-  if (currentStation) fetchDepartures(currentStation);
-});
+    if (currentStation) fetchDepartures(currentStation);
+  });
+}
 
 // Gleis/Track anzeigen umschalten
 const toggleTrackBtn = document.getElementById("toggle-track");
@@ -1031,37 +1389,24 @@ if (toggleTrackBtn) {
   });
 }
 
+// Icon-Toolbar (Umgebung / Suche) + identische Buttons im Welcome-View
+const btnNearEl = document.getElementById("btn-near");
+if (btnNearEl) btnNearEl.addEventListener("click", openNearbySheet);
+const btnSearchEl = document.getElementById("btn-search");
+if (btnSearchEl) btnSearchEl.addEventListener("click", openSearchSheet);
+const welcomeSearchBtnEl = document.getElementById("welcome-search-btn");
+if (welcomeSearchBtnEl) welcomeSearchBtnEl.addEventListener("click", openSearchSheet);
+const welcomeNearbyBtnEl = document.getElementById("welcome-nearby-btn");
+if (welcomeNearbyBtnEl) welcomeNearbyBtnEl.addEventListener("click", openNearbySheet);
+
 // ----------------- Initial -----------------
 
 function forceFullUIRedraw() {
-  // 1. Apply translations
   applyTranslations();
-
-  // 2. Update placeholder in “Other”
-  const inputEl = document.getElementById("stationSearch");
-  if (inputEl) {
-    inputEl.placeholder = getCountryAwarePlaceholder(
-      currentLang,
-      getPreferredCountry()
-    );
-  }
-
-  // 3. Re-render favorites (filtered by active country)
-  const country = getPreferredCountry();
-  const favs = getTopFavourites().filter(f => (f.provider || "CH") === country);
-  const T = i18n[currentLang];
-  const opts = favs.map(f => ({ value: JSON.stringify(f), label: prettyStationLabel(f.name) }));
-  fillSelect(opts, T.favPlaceholder);
-
-  // 4. Re-fetch departures for the currently shown station if it still matches
   if (currentStation) {
-    const currentCountry = stationCountry(currentStation);
-    if (currentCountry === country) {
-      fetchDepartures(currentStation, {});
-    } else {
-      currentStation = null;
-      updateStationChip("");
-    }
+    fetchDepartures(currentStation, {});
+  } else {
+    renderFavouritesView();
   }
 }
 
@@ -1077,31 +1422,10 @@ if (btnLang) {
   });
 }
 
-if (countryToggle) {
-  countryToggle.addEventListener("click", switchCountry);
-}
-
 (async function init() {
   updateStationChip("");
-  setMode("fav");
   applyTranslations();
-  updateCountryToggle();
-  const inputEl = document.getElementById("stationSearch");
-  if (inputEl) inputEl.placeholder = getCountryAwarePlaceholder(currentLang, getPreferredCountry());
-
-  const country = getPreferredCountry();
-  const favs = getTopFavourites().filter(f => (f.provider || "CH") === country);
-  const T = i18n[currentLang];
-  if (favs.length) {
-    const best = favs[0];
-    await fetchDepartures(best, {});
-    const options = favs.map(f => ({
-      value: JSON.stringify(f),
-      label: prettyStationLabel(f.name)
-    }));
-    fillSelect(options, T.favPlaceholder);
-  } else {
-    if (country === "CH") await fetchDepartures("Zürich HB", {});
-    fillSelect([], T.favPlaceholder);
-  }
+  updateCountryUI();
+  applyAccentTheme(getAccentTheme());
+  showFavouritesView();
 })();

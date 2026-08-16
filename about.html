@@ -41,6 +41,10 @@
     <h1>Live Departures</h1>
     <p>Echtzeit-Abfahrtstafeln für den öffentlichen Verkehr in der Schweiz und Deutschland — direkt im Browser, ohne App, ohne Registrierung, ohne Tracking.</p>
 
+    <p>📱 <b>Neu als native iOS-App:</b> Länderwechsel per Fingertipp, wählbare Akzentfarbe, kein Browser-Umweg.
+      <a class="support-btn" style="display:inline-flex; margin-left:0.4rem; padding:0.35rem 0.9rem;" href="https://apps.apple.com/ch/app/livedepartures/id6782948396" target="_blank" rel="noopener">Im App Store laden →</a>
+    </p>
+
     <hr>
 
     <h2>Was macht diese App?</h2>
@@ -48,18 +52,21 @@
 
     <h2>Funktionen</h2>
     <ul>
-      <li><b>🇨🇭 / 🇩🇪 Länder-Umschalter</b> — Die Flagge oben rechts wechselt zwischen der Schweiz und Deutschland. Favoriten, Suche und Umgebung reagieren je auf das aktive Land.</li>
-      <li><b>Favoriten</b> — Deine am häufigsten genutzten Haltestellen werden automatisch gespeichert und nach Nutzungshäufigkeit sortiert. Stationen, die du seit 14 Tagen nicht mehr benutzt hast, rutschen ans Ende.</li>
-      <li><b>Umgebung</b> — Findet Haltestellen in der Nähe deines aktuellen Standorts.</li>
-      <li><b>Suche</b> — Autocomplete-Suche für Haltestellen im aktiven Land.</li>
+      <li><b>🇨🇭 / 🇩🇪 Länderwahl</b> — Im Menü (☰) oben links unter «Land» wählen. Favoriten, Suche und Umgebung reagieren je auf das aktive Land, das als Flagge neben dem Titel angezeigt wird.</li>
+      <li><b>Favoriten</b> — Startbildschirm der App. Deine zuletzt genutzten Haltestellen werden automatisch gespeichert; die aktuellste erscheint immer oben (max. 7 pro Land, unabhängig voneinander). Antippen öffnet die Abfahrtstafel, <b>✕</b> löscht einen Eintrag, «‹ Favoriten» oben führt zurück zur Liste.</li>
+      <li><b>Umgebung</b> — Papierflieger-Symbol oben rechts: findet Haltestellen in der Nähe deines aktuellen Standorts.</li>
+      <li><b>Suche</b> — Lupen-Symbol oben rechts: Autocomplete-Suche für Haltestellen im aktiven Land.</li>
       <li><b>Gleis / Kante / Anleger</b> — «Gleis» im Tabellenkopf antippen, um die Gleisangabe unter jeder Abfahrt anzuzeigen. Bei Trams und Bussen erscheint «Kante», bei Fähren «Anleger».</li>
       <li><b>Verspätungsanzeige</b> — Ein rotes <b>!</b> erscheint vor der Abfahrtszeit, wenn eine Verbindung verspätet ist.</li>
       <li><b>Zugausfall</b> — Fällt eine Verbindung aus, erscheint ein rotes <b>✕</b> und die Zeile wird durchgestrichen.</li>
       <li><b>Gleisänderung</b> — Wechselt ein Zug kurzfristig das Gleis, wird das ursprüngliche Gleis durchgestrichen und das neue rot angezeigt.</li>
+      <li><b>Zwischenstationen</b> — Zug oder S-Bahn antippen (Pfeil ›) öffnet ein Sheet mit allen Folgehaltestellen und Abfahrtszeiten. Im Sheet einen Halt antippen zeigt (falls verfügbar) das Gleis an dieser Station.</li>
+      <li><b>Live-Anzeige</b> — Ein pulsierender grüner Punkt bei Zug/S-Bahn zeigt Fahrten mit Echtzeit-Tracking an (CH + DE).</li>
+      <li><b>Akzentfarbe</b> — ≡ → «Akzentfarbe»: Orange oder Weiss, die Wahl wird auf diesem Gerät gespeichert.</li>
       <li><b>Zeitformate</b> — «Abfahrt» antippen, um zwischen relativer Zeit (3', 1:05) und Uhrzeit (14:32) zu wechseln.</li>
       <li><b>Automatische Aktualisierung</b> — Die Tafel aktualisiert sich alle 60 Sekunden automatisch. Beim Zurückkehren zur App wird sofort neu geladen.</li>
       <li><b>Zwei Sprachen</b> — Deutsch und Englisch, mit DE/EN umschalten.</li>
-      <li><b>Auf dem Homescreen installieren</b> — Funktioniert als PWA auf iOS und Android. Siehe <a href="install/">Installationsanleitung</a>.</li>
+      <li><b>Auf dem Homescreen installieren</b> — Funktioniert als PWA auf iOS und Android. Siehe <a href="install/">Installationsanleitung</a>. iPhone-Nutzer: Die native App oben bietet mehr Funktionen als die installierte Web-Version.</li>
     </ul>
 
     <h2>Häufige Fragen</h2>
@@ -79,7 +86,7 @@
     <p>Die App nutzt öffentliche APIs, die gelegentlich langsam oder kurzzeitig nicht erreichbar sind. Es wird eine Statusmeldung angezeigt und einmal automatisch erneut versucht.</p>
 
     <h2>Meine Haltestelle ist nicht in der Liste</h2>
-    <p>Den Modus «Andere» nutzen und den Namen eintippen. Die Autocomplete-Suche durchsucht alle Haltestellen im aktiven Land.</p>
+    <p>Das 🔍-Symbol oben rechts antippen und den Namen eintippen. Die Autocomplete-Suche durchsucht alle Haltestellen im aktiven Land.</p>
 
     <h2>Die Gleisinformation fehlt</h2>
     <p>Gleisdaten sind nur verfügbar, wenn der jeweilige Betreiber sie veröffentlicht. In der Schweiz z. B. Zürich HB, Stadelhofen, Bellevue; in Deutschland z. B. Berlin Hbf. An einfachen Haltestellen ohne Gleisangabe bleibt das Feld leer.</p>
@@ -87,15 +94,16 @@
     <h2>Welche Datenquellen werden verwendet?</h2>
     <ul>
       <li>🇨🇭 Schweiz: <a href="https://transport.opendata.ch" target="_blank">transport.opendata.ch</a> — deckt alle Schweizer Betreiber ab (SBB, ZVV, BLS usw.)</li>
-      <li>🇩🇪 Deutschland: <a href="https://transitous.org" target="_blank">Transitous</a> — Community-Dienst auf Basis von GTFS/DELFI-Feeds; kein SLA</li>
+      <li>🇩🇪 Deutschland: <a href="https://transitous.org" target="_blank">Transitous</a> — Community-Dienst auf Basis von GTFS/DELFI-Feeds; kein SLA. Vollständige Quellenübersicht: <a href="https://transitous.org/sources/" target="_blank">transitous.org/sources</a></li>
     </ul>
     <p>Beide APIs sind öffentlich und kostenlos. Es ist kein API-Schlüssel erforderlich.</p>
+    <p>Fahrplandaten © die jeweiligen Betreiber, Geodaten © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>-Mitwirkende (ODbL).</p>
 
     <h2>Werden Daten über mich gespeichert?</h2>
     <p>Keine Daten werden serverseitig erfasst. Deine Favoriten und die Spracheinstellung werden ausschliesslich lokal auf deinem Gerät gespeichert (Browser-LocalStorage). Die App verwendet <a href="https://www.goatcounter.com" target="_blank">GoatCounter</a> für anonyme Seitenaufrufe — keine Cookies, kein Fingerprinting.</p>
 
     <h2>Wie lösche ich meine Favoriten?</h2>
-    <p>In den Browser-Entwicklertools unter Application → Local Storage den Eintrag <code>favourites_v2</code> löschen. Oder einfach alte Haltestellen nicht mehr nutzen — sie verschwinden nach 14 Tagen automatisch.</p>
+    <p>Auf der Favoriten-Startseite bei jedem Eintrag auf <b>✕</b> tippen. Alternativ in den Browser-Entwicklertools unter Application → Local Storage den Eintrag <code>favourites_v2</code> löschen. Neue Favoriten verdrängen alte automatisch, sobald das Limit von 7 pro Land erreicht ist.</p>
 
     <hr>
     <p style="font-size:0.82rem; opacity:0.5;">© 2026 Martin · Live Departures v1.5 · Alle Rechte vorbehalten.</p>
@@ -108,6 +116,10 @@
     <h1>Live Departures</h1>
     <p>Real-time public transport departure boards for Switzerland and Germany — directly in your browser, no app, no registration, no tracking.</p>
 
+    <p>📱 <b>Now available as a native iOS app:</b> switch countries with one tap, pick your accent colour, no browser detour.
+      <a class="support-btn" style="display:inline-flex; margin-left:0.4rem; padding:0.35rem 0.9rem;" href="https://apps.apple.com/ch/app/livedepartures/id6782948396" target="_blank" rel="noopener">Get it on the App Store →</a>
+    </p>
+
     <hr>
 
     <h2>What does this app do?</h2>
@@ -115,18 +127,21 @@
 
     <h2>Features</h2>
     <ul>
-      <li><b>🇨🇭 / 🇩🇪 Country toggle</b> — the flag button in the top right switches between Switzerland and Germany. Favorites, search, and nearby all respond to the active country.</li>
-      <li><b>Favorites</b> — your most-used stations are remembered and ranked automatically. Stations you haven't used in 14 days drop to the bottom.</li>
-      <li><b>Nearby</b> — finds stations close to your current location.</li>
-      <li><b>Search</b> — autocomplete search for any stop in the active country.</li>
+      <li><b>🇨🇭 / 🇩🇪 Country selection</b> — pick it in the menu (☰, top left) under "Country". Favorites, search, and nearby all respond to the active country, shown as a flag next to the title.</li>
+      <li><b>Favorites</b> — the app's home screen. Your most recently used stations are remembered automatically; the most recent always appears at the top (up to 7 per country, independently). Tap to open the departure board, <b>✕</b> deletes an entry, "‹ Favorites" at the top returns to the list.</li>
+      <li><b>Nearby</b> — paper-plane icon, top right: finds stations close to your current location.</li>
+      <li><b>Search</b> — magnifying-glass icon, top right: autocomplete search for any stop in the active country.</li>
       <li><b>Track / Bay / Pier</b> — tap "Track" in the header to show platform information below each departure. Trams and buses show "Bay", ferries show "Pier".</li>
       <li><b>Delay indicator</b> — a red <b>!</b> appears before the departure time when a service is delayed.</li>
       <li><b>Cancellations</b> — if a service is cancelled, a red <b>✕</b> appears and the row is struck through.</li>
       <li><b>Platform changes</b> — when a train moves to a different platform at short notice, the original is shown struck through and the new one in red.</li>
+      <li><b>Intermediate stops</b> — tap a train or S-Bahn row (arrow ›) to open a sheet with all subsequent stops and departure times. Tap a stop in the sheet to reveal its platform, where available.</li>
+      <li><b>Live indicator</b> — a pulsing green dot on trains/S-Bahn marks trips with real-time tracking (CH + DE).</li>
+      <li><b>Accent color</b> — ≡ → "Accent Color": orange or white, the choice is saved on this device.</li>
       <li><b>Time formats</b> — tap "Departure" to switch between relative time (3', 1:05) and clock time (14:32).</li>
       <li><b>Auto-refresh</b> — the board updates silently every 60 seconds. When you switch back to the app, it refreshes immediately.</li>
       <li><b>Two languages</b> — German and English, tap DE/EN to switch.</li>
-      <li><b>Install on your home screen</b> — works as a PWA on iOS and Android. See the <a href="install/">install guide</a>.</li>
+      <li><b>Install on your home screen</b> — works as a PWA on iOS and Android. See the <a href="install/">install guide</a>. iPhone users: the native app above offers more features than the installed web version.</li>
     </ul>
 
     <h2>Frequently Asked Questions</h2>
@@ -146,7 +161,7 @@
     <p>The app uses public APIs that are occasionally slow or briefly unavailable. It will show a status message and retry automatically once before reporting a failure.</p>
 
     <h2>My station is not in the list</h2>
-    <p>Use the "Other" mode and type the station name. The autocomplete searches all stops in the active country.</p>
+    <p>Tap the 🔍 icon in the top right and type the station name. The autocomplete searches all stops in the active country.</p>
 
     <h2>The track information is missing</h2>
     <p>Platform data is only available when the operator publishes it. In Switzerland for example Zürich HB, Stadelhofen, Bellevue; in Germany for example Berlin Hbf. At simple stops without platform data the field is left empty.</p>
@@ -154,15 +169,16 @@
     <h2>What data sources are used?</h2>
     <ul>
       <li>🇨🇭 Switzerland: <a href="https://transport.opendata.ch" target="_blank">transport.opendata.ch</a> — covers all Swiss operators (SBB, ZVV, BLS, etc.)</li>
-      <li>🇩🇪 Germany: <a href="https://transitous.org" target="_blank">Transitous</a> — community-operated service based on GTFS/DELFI feeds; no SLA</li>
+      <li>🇩🇪 Germany: <a href="https://transitous.org" target="_blank">Transitous</a> — community-operated service based on GTFS/DELFI feeds; no SLA. Full source list: <a href="https://transitous.org/sources/" target="_blank">transitous.org/sources</a></li>
     </ul>
     <p>Both APIs are public and free. No API key is required.</p>
+    <p>Timetable data © the respective operators, geodata © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors (ODbL).</p>
 
     <h2>Is any data stored about me?</h2>
     <p>No server-side data is collected. Your favorites and language preference are stored locally on your device only (browser localStorage). The app uses <a href="https://www.goatcounter.com" target="_blank">GoatCounter</a> for anonymous page view counting — no cookies, no fingerprinting.</p>
 
     <h2>How do I clear my favorites?</h2>
-    <p>Open your browser's developer tools, go to Application → Local Storage, and delete the entry <code>favourites_v2</code>. Or simply stop using old stations — they will fade out automatically after 14 days.</p>
+    <p>Tap <b>✕</b> next to any entry on the favorites home screen. Alternatively, open your browser's developer tools, go to Application → Local Storage, and delete the entry <code>favourites_v2</code>. New favorites automatically push out old ones once the limit of 7 per country is reached.</p>
 
     <hr>
     <p style="font-size:0.82rem; opacity:0.5;">© 2026 Martin · Live Departures v1.5 · All rights reserved.</p>
