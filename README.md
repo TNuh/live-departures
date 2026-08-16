@@ -2,7 +2,7 @@
 
 A lightweight, PWA-ready real-time departure board for public transport in Switzerland and Germany. No app store, no registration, no tracking — runs entirely in the browser.
 
-**Live:** [live-departures.app](https://live-departures.app) · **Source:** [github.com/TNuh/live-departures](https://github.com/TNuh/live-departures)
+**Live:** [live-departures.app](https://live-departures.app) — running **v2.0 b1** since 2026-08-16 · **Source:** [github.com/TNuh/live-departures](https://github.com/TNuh/live-departures)
 
 ---
 
@@ -154,7 +154,7 @@ Transitous platform data availability depends on the underlying GTFS feed. Major
 
 ### v2.0 b1 — iOS v2.0 parity batch + home screen redesign (current — 2026-08-16)
 
-First beta released for testing; version bumped from v1.5. Beta builds increment (b2, b3, …) until v2.0 final.
+First beta released for testing; version bumped from v1.5. Deployed to live-departures.app (Infomaniak shared hosting) on 2026-08-16. Beta builds increment (b2, b3, …) until v2.0 final.
 
 Feature-parity work (see `CONCEPT.md` for the original gap analysis against the native iOS app):
 - **CH real-time fix** — displayed time now prefers `prognosis.departure` over the scheduled time (see CH Data Flow above)
