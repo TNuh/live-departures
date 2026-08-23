@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datenschutz – Live Departures</title>
+  <style>
+    /* Rückfallebene: greift nur, wenn style.css fehlt — etwa falls die Web-App
+       einmal abgeschaltet wird und nur noch diese Seite bestehen bleibt.
+       Steht bewusst VOR dem Stylesheet, damit style.css gewinnt, solange es da ist. */
+    :root { --bg: #000; --fg: #ffa31a; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: clamp(14px, 2.7vw, 18px);
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .about-wrap {
+      max-width: min(680px, 94vw);
+      margin: 2rem auto 3rem;
+      line-height: 1.7;
+    }
+    .about-wrap h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .about-wrap h2 { font-size: 1.05rem; margin-top: 2rem; margin-bottom: 0.4rem; opacity: 0.85; letter-spacing: 0.5px; }
+    .about-wrap h3 { font-size: 0.95rem; margin-top: 1.2rem; margin-bottom: 0.2rem; opacity: 0.75; }
+    .about-wrap p  { margin: 0.4rem 0 0.8rem; opacity: 0.85; font-size: 0.95rem; }
+    .about-wrap ul { margin: 0.3rem 0 0.8rem 1.2rem; opacity: 0.85; font-size: 0.95rem; }
+    .about-wrap li { margin-bottom: 0.3rem; }
+    .about-wrap a  { color: var(--fg); }
+    hr { border: none; border-top: 1px solid #333; margin: 2rem 0; }
+    .lang-section { display: none; }
+    .lang-section.active { display: block; }
+    /* Eigene Sprachumschaltung: Diese Seite wird aus dem App Store heraus direkt
+       aufgerufen, also ohne die im Hauptfenster gesetzte Sprache. */
+    .lang-switch {
+      float: right;
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      opacity: 0.6;
+      letter-spacing: 0.5px;
+    }
+    .lang-switch button {
+      background: none; border: none; padding: 0 0.15rem;
+      color: var(--fg); font: inherit; cursor: pointer; opacity: 0.55;
+    }
+    .lang-switch button.on { opacity: 1; font-weight: 600; }
+    .topline { overflow: hidden; }
+  </style>
+</head>
+<body>
+<div class="about-wrap">
+
+  <div class="topline">
+    <span class="lang-switch">
+      <button type="button" data-lang="de">DE</button>/<button type="button" data-lang="en">EN</button>
+    </span>
+  </div>
+
+  <!-- GERMAN -->
+  <div class="lang-section" id="section-de">
+
+    <h1>Datenschutz</h1>
+    <p>Diese Erklärung gilt für <b>Live Departures für iOS</b> (Version 2.0), erhältlich im App Store.</p>
+
+    <hr>
+
+    <h2>Kurz gesagt</h2>
+    <ul>
+      <li>Es gibt kein Benutzerkonto und keine Anmeldung.</li>
+      <li>Es wird kein Nutzungsprofil erstellt und nichts an Werbenetzwerke weitergegeben.</li>
+      <li>Favoriten und Einstellungen bleiben auf deinem Gerät.</li>
+      <li>Es gibt keinen eigenen Server, auf dem etwas über dich gespeichert werden könnte.</li>
+    </ul>
+
+    <h2>Verantwortlich</h2>
+    <p>Martin · <a href="mailto:welcome@live-departures.app">welcome@live-departures.app</a></p>
+
+    <h2>Was auf deinem Gerät gespeichert wird</h2>
+    <p>Deine Favoriten, die Sprachwahl, das gewählte Land und die Akzentfarbe werden ausschliesslich lokal auf deinem Gerät gespeichert, in den Einstellungen der App. Diese Angaben verlassen dein Gerät nicht und sind für uns nicht einsehbar. Löschst du die App, sind sie weg.</p>
+
+    <h2>Standort</h2>
+    <p>Der Standort wird <b>nur</b> abgefragt, wenn du die Funktion «In der Nähe» aufrufst, und nur mit deiner ausdrücklichen Erlaubnis. Die Koordinaten werden für diese eine Abfrage an die unten genannten Dienste übermittelt, um Haltestellen in deiner Umgebung zu finden. Sie werden nicht gespeichert, nicht mit dir verknüpft und nicht weitergegeben. Du kannst die Erlaubnis jederzeit in den Geräteeinstellungen widerrufen; alle übrigen Funktionen bleiben nutzbar.</p>
+
+    <h2>Externe Dienste für die Fahrplandaten</h2>
+    <p>Live Departures betreibt keinen eigenen Server. Jede Abfrage geht direkt von deinem Gerät an öffentliche Fahrplandienste:</p>
+    <ul>
+      <li><b>Schweiz:</b> <a href="https://transport.opendata.ch" target="_blank" rel="noopener">transport.opendata.ch</a> (Opendata.ch, gestützt auf search.ch)</li>
+      <li><b>Deutschland:</b> <a href="https://transitous.org" target="_blank" rel="noopener">Transitous</a></li>
+      <li><b>Umkreissuche:</b> <a href="https://nominatim.openstreetmap.org" target="_blank" rel="noopener">Nominatim</a> (OpenStreetMap)</li>
+    </ul>
+    <p>Technisch bedingt erfahren diese Dienste dabei deine IP-Adresse sowie die angefragte Haltestelle — bei «In der Nähe» zusätzlich deine Koordinaten. Was sie damit tun, richtet sich nach ihren eigenen Bestimmungen; wir haben darauf keinen Einfluss.</p>
+
+    <h2>Was die App nicht enthält</h2>
+    <p>Keine Reichweitenmessung, keine Analyse-Werkzeuge, kein Absturzberichts-Dienst. Keine Werbung und keine Werbe-Kennungen. Keine In-App-Käufe und keine Zahlungsfunktion. Keine Weitergabe an Dritte über die oben genannten Fahrplandienste hinaus, die für die Abfrage selbst nötig sind.</p>
+
+    <h2>Deine Rechte</h2>
+    <p>Da wir keine personenbezogenen Daten erheben, gibt es auch keinen Datenbestand, über den Auskunft erteilt oder der gelöscht werden könnte. Deine lokal gespeicherten Angaben löschst du selbst — über «Favoriten löschen» im Menü oder durch Entfernen der App. Bei Fragen erreichst du uns unter der oben genannten Adresse.</p>
+
+    <h2>Änderungen</h2>
+    <p>Ändert sich etwas an der Datenverarbeitung, wird diese Seite angepasst. Massgeblich ist die jeweils hier veröffentlichte Fassung.</p>
+
+    <hr>
+    <p style="font-size:0.82rem; opacity:0.5;">© 2026 Martin · Live Departures · Stand: 2. August 2026</p>
+  </div>
+
+  <!-- ENGLISH -->
+  <div class="lang-section" id="section-en">
+
+    <h1>Privacy</h1>
+    <p>This notice covers <b>Live Departures for iOS</b> (version 2.0), available on the App Store.</p>
+
+    <hr>
+
+    <h2>In short</h2>
+    <ul>
+      <li>There is no user account and no sign-in.</li>
+      <li>No usage profile is built and nothing is passed to advertising networks.</li>
+      <li>Favourites and settings stay on your device.</li>
+      <li>There is no server of ours on which anything about you could be stored.</li>
+    </ul>
+
+    <h2>Who is responsible</h2>
+    <p>Martin · <a href="mailto:welcome@live-departures.app">welcome@live-departures.app</a></p>
+
+    <h2>What is stored on your device</h2>
+    <p>Your favourites, language choice, selected country and accent colour are stored locally on your device only, in the app's own settings. They never leave your device and we cannot see them. Delete the app and they are gone.</p>
+
+    <h2>Location</h2>
+    <p>Your location is requested <b>only</b> when you use the "Nearby" feature, and only with your explicit permission. The coordinates are sent to the services listed below for that single query, in order to find stops around you. They are not stored, not linked to you and not shared. You can withdraw the permission at any time in your device settings; every other feature keeps working.</p>
+
+    <h2>External services for timetable data</h2>
+    <p>Live Departures runs no server of its own. Every query goes straight from your device to public transit services:</p>
+    <ul>
+      <li><b>Switzerland:</b> <a href="https://transport.opendata.ch" target="_blank" rel="noopener">transport.opendata.ch</a> (Opendata.ch, built on search.ch)</li>
+      <li><b>Germany:</b> <a href="https://transitous.org" target="_blank" rel="noopener">Transitous</a></li>
+      <li><b>Nearby search:</b> <a href="https://nominatim.openstreetmap.org" target="_blank" rel="noopener">Nominatim</a> (OpenStreetMap)</li>
+    </ul>
+    <p>By the nature of the request, these services see your IP address and the stop you asked for — and, for "Nearby", your coordinates. What they do with that is governed by their own terms, over which we have no influence.</p>
+
+    <h2>What the app does not contain</h2>
+    <p>No audience measurement, no analytics tools, no crash reporting service. No advertising and no advertising identifiers. No in-app purchases and no payment function. No sharing with third parties beyond the transit services named above, which the query itself requires.</p>
+
+    <h2>Your rights</h2>
+    <p>Since we collect no personal data, there is no record to disclose or erase. You delete what is stored locally yourself — via "Clear favourites" in the menu or by removing the app. For any questions, reach us at the address above.</p>
+
+    <h2>Changes</h2>
+    <p>If anything about the data handling changes, this page will be updated. The version published here is the one that applies.</p>
+
+    <hr>
+    <p style="font-size:0.82rem; opacity:0.5;">© 2026 Martin · Live Departures · Last updated 2 August 2026</p>
+  </div>
+
+</div>
+
+<script>
+  // Sprache: gespeicherte Wahl → sonst Browsersprache → sonst Deutsch.
+  // Die Browsersprache zählt hier mit, weil die Seite aus dem App Store heraus
+  // direkt aufgerufen wird, ohne vorherigen Besuch der App.
+  function show(lang) {
+    document.querySelectorAll(".lang-section").forEach(s => s.classList.remove("active"));
+    document.getElementById("section-" + lang).classList.add("active");
+    document.documentElement.lang = lang;
+    document.querySelectorAll(".lang-switch button").forEach(b =>
+      b.classList.toggle("on", b.dataset.lang === lang));
+  }
+
+  const stored = localStorage.getItem("lang");
+  const guessed = (navigator.language || "de").toLowerCase().startsWith("de") ? "de" : "en";
+  show(stored === "de" || stored === "en" ? stored : guessed);
+
+  document.querySelectorAll(".lang-switch button").forEach(b =>
+    b.addEventListener("click", () => {
+      localStorage.setItem("lang", b.dataset.lang);
+      show(b.dataset.lang);
+    }));
+</script>
+</body>
+</html>

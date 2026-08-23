@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support – Live Departures</title>
+  <style>
+    /* Rückfallebene: greift nur, wenn style.css fehlt — etwa falls die Web-App
+       einmal abgeschaltet wird und nur noch diese Seite bestehen bleibt.
+       Steht bewusst VOR dem Stylesheet, damit style.css gewinnt, solange es da ist. */
+    :root { --bg: #000; --fg: #ffa31a; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: clamp(14px, 2.7vw, 18px);
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .about-wrap {
+      max-width: min(680px, 94vw);
+      margin: 2rem auto 3rem;
+      line-height: 1.7;
+    }
+    .about-wrap h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .about-wrap h2 { font-size: 1.05rem; margin-top: 2rem; margin-bottom: 0.4rem; opacity: 0.85; letter-spacing: 0.5px; }
+    .about-wrap p  { margin: 0.4rem 0 0.8rem; opacity: 0.85; font-size: 0.95rem; }
+    .about-wrap ul { margin: 0.3rem 0 0.8rem 1.2rem; opacity: 0.85; font-size: 0.95rem; }
+    .about-wrap li { margin-bottom: 0.3rem; }
+    .about-wrap a  { color: var(--fg); }
+    hr { border: none; border-top: 1px solid #333; margin: 2rem 0; }
+    .lang-section { display: none; }
+    .lang-section.active { display: block; }
+    .lang-switch {
+      float: right;
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      opacity: 0.6;
+      letter-spacing: 0.5px;
+    }
+    .lang-switch button {
+      background: none; border: none; padding: 0 0.15rem;
+      color: var(--fg); font: inherit; cursor: pointer; opacity: 0.55;
+    }
+    .lang-switch button.on { opacity: 1; font-weight: 600; }
+    .topline { overflow: hidden; }
+    .mailbtn {
+      display: inline-block;
+      margin: 0.3rem 0 0.6rem;
+      padding: 0.5rem 1rem;
+      border: 1px solid #444;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    .mailbtn:hover { border-color: #777; }
+  </style>
+</head>
+<body>
+<div class="about-wrap">
+
+  <div class="topline">
+    <span class="lang-switch">
+      <button type="button" data-lang="de">DE</button>/<button type="button" data-lang="en">EN</button>
+    </span>
+  </div>
+
+  <!-- GERMAN -->
+  <div class="lang-section" id="section-de">
+
+    <h1>Support</h1>
+    <p>Fragen, Fehler oder ein Wunsch für die nächste Version? Schreib einfach — es antwortet ein Mensch.</p>
+
+    <a class="mailbtn" href="mailto:welcome@live-departures.app?subject=Live%20Departures%20Support">welcome@live-departures.app</a>
+
+    <hr>
+
+    <h2>Vielleicht steht die Antwort schon in der App</h2>
+    <p>Unter <b>≡ → Über die App</b> sind alle Funktionen erklärt und die häufigsten Fragen beantwortet — warum eine Haltestelle fehlt, weshalb manchmal keine Gleisangabe erscheint, wie Favoriten gelöscht werden.</p>
+    <p><a href="privacy.html">Datenschutz</a></p>
+
+    <h2>Was bei einer Fehlermeldung hilft</h2>
+    <p>Damit sich ein Problem nachvollziehen lässt, sind diese Angaben Gold wert:</p>
+    <ul>
+      <li>Die App-Version — sie steht zuoberst im Menü</li>
+      <li>Welche Haltestelle und welches Land</li>
+      <li>Was du erwartet hast — und was stattdessen passiert ist</li>
+      <li>Wenn möglich ein Bildschirmfoto</li>
+    </ul>
+
+    <h2>Wenn keine Daten kommen</h2>
+    <p>Live Departures betreibt keinen eigenen Server, sondern fragt öffentliche Fahrplandienste ab. Sind diese kurzzeitig überlastet oder nicht erreichbar, bleibt die Tafel leer oder unvollständig — das liegt dann nicht an der App und lässt sich von hier aus auch nicht beheben. Meist hilft es, es wenige Minuten später erneut zu versuchen. Welche Dienste im Einsatz sind, steht unter <a href="privacy.html">Datenschutz</a>.</p>
+
+    <h2>Fehlt eine Funktion?</h2>
+    <p>Vorschläge sind willkommen. Die App bleibt bewusst schlank — sie zeigt Abfahrtstafeln und plant keine Verbindungen von A nach B. Alles, was diesem Zweck dient, wird gerne geprüft.</p>
+
+    <hr>
+    <p style="font-size:0.82rem; opacity:0.5;">© 2026 Martin · Live Departures</p>
+  </div>
+
+  <!-- ENGLISH -->
+  <div class="lang-section" id="section-en">
+
+    <h1>Support</h1>
+    <p>A question, a bug, or a wish for the next version? Just write — a human answers.</p>
+
+    <a class="mailbtn" href="mailto:welcome@live-departures.app?subject=Live%20Departures%20Support">welcome@live-departures.app</a>
+
+    <hr>
+
+    <h2>The answer may already be in the app</h2>
+    <p>Under <b>≡ → About</b> every feature is explained and the most common questions are answered — why a stop is missing, why a platform number sometimes doesn't appear, how to clear favourites.</p>
+    <p><a href="privacy.html">Privacy</a></p>
+
+    <h2>What helps when reporting a problem</h2>
+    <p>To make an issue reproducible, these details are worth their weight in gold:</p>
+    <ul>
+      <li>The app version — shown at the top of the menu</li>
+      <li>Which stop and which country</li>
+      <li>What you expected — and what happened instead</li>
+      <li>A screenshot, if you can</li>
+    </ul>
+
+    <h2>When no data appears</h2>
+    <p>Live Departures runs no server of its own; it queries public transit services. If those are briefly overloaded or unreachable, the board stays empty or incomplete — that is not the app, and it cannot be fixed from here. Trying again a few minutes later usually helps. The services in use are listed under <a href="privacy.html">Privacy</a>.</p>
+
+    <h2>Missing a feature?</h2>
+    <p>Suggestions are welcome. The app stays deliberately lean — it shows departure boards and does not plan journeys from A to B. Anything serving that purpose is gladly considered.</p>
+
+    <hr>
+    <p style="font-size:0.82rem; opacity:0.5;">© 2026 Martin · Live Departures</p>
+  </div>
+
+</div>
+
+<script>
+  function show(lang) {
+    document.querySelectorAll(".lang-section").forEach(s => s.classList.remove("active"));
+    document.getElementById("section-" + lang).classList.add("active");
+    document.documentElement.lang = lang;
+    document.querySelectorAll(".lang-switch button").forEach(b =>
+      b.classList.toggle("on", b.dataset.lang === lang));
+  }
+
+  const stored = localStorage.getItem("lang");
+  const guessed = (navigator.language || "de").toLowerCase().startsWith("de") ? "de" : "en";
+  show(stored === "de" || stored === "en" ? stored : guessed);
+
+  document.querySelectorAll(".lang-switch button").forEach(b =>
+    b.addEventListener("click", () => {
+      localStorage.setItem("lang", b.dataset.lang);
+      show(b.dataset.lang);
+    }));
+</script>
+</body>
+</html>
