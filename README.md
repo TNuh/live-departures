@@ -225,3 +225,9 @@ Home screen redesign (matches the native app's `FavouritesListView`):
 ## Analytics
 
 A single GoatCounter script tag (`gc.zgo.at/count.js`) is included for page view counting. No cookies, no fingerprinting, GDPR-compliant.
+
+---
+
+## Tooling notes
+
+- **`apple-design` skill** (from [github.com/emilkowalski/skills](https://github.com/emilkowalski/skills)) — evaluated 2026-08-23, not yet installed. Distills Apple's WWDC design/motion talks (fluid interfaces, springs, materials, typography, reduced motion) **translated for the web** (CSS, Pointer Events, `requestAnimationFrame`, spring libraries) — a direct match for this codebase's stack, unlike the native iOS app where SwiftUI already gives most of it for free. Install with `npx skills@latest add emilkowalski/skills` when ready to invest in motion/interaction polish here (e.g. sheet drag physics, country-switch transitions). The repo's other skills (animation tooling, `pick-ui-library`, `ask-sonner`, `prototype`) are React/JS-ecosystem-focused and mostly not applicable to this vanilla-JS codebase — worth a second look only if a framework migration ever happens.
