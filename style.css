@@ -215,12 +215,14 @@ font-size: 1.05rem;          /* was 1.15rem */
   overflow: visible;
 }
 
-/* Abfahrt column (right) — feste Breite, reicht für "23:59" / "1:05" + !/✕-Marker */
+/* Abfahrt column (right) — feste Breite, reicht für "23:59" / "1:05" + !/✕-Marker.
+   4.6rem reichte für die reine Zeit, aber "! 23:59" wurde mit dem !/✕-Marker
+   abgeschnitten (Ellipsis aus der generischen td-Regel oben) — etwas breiter. */
 .departure-table th:nth-child(3),
 .departure-table td:nth-child(3) {
   text-align: right;
   white-space: nowrap;
-  width: 4.6rem;
+  width: 5.3rem;
 }
 
 /* Mobile Feinschliff */
@@ -256,12 +258,14 @@ font-size: 1.05rem;          /* was 1.15rem */
 .delay-mark {
   color: #ff5c5c;
   font-weight: 700;
+  margin-right: 0.2em;
 }
 
 /* Cancellation mark and row */
 .cancel-mark {
   color: #ff5c5c;
   font-weight: 700;
+  margin-right: 0.2em;
 }
 
 tr.cancelled td {

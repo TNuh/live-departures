@@ -987,8 +987,8 @@ if (displayAbsolute) {
   const plannedPlatform = dep.stop?.platform || dep.platform || dep.plannedPlatform || "";
   const newPlatform = dep.stop?.prognosis?.platform || "";
   const platformChanged = !!(newPlatform && newPlatform !== plannedPlatform);
-  const delayMark = (hasDelay && when !== tramIcon) ? '<span class="delay-mark">!</span> ' : '';
-  const cancelMark = isCancelled ? '<span class="cancel-mark">✕</span> ' : '';
+  const delayMark = (hasDelay && when !== tramIcon) ? '<span class="delay-mark">!</span>' : '';
+  const cancelMark = isCancelled ? '<span class="cancel-mark">✕</span>' : '';
   const { isFerry, isBusOrTram } = classifyDepartureKind(dep, line);
   const trackLabel = isFerry ? T.colPier : (isBusOrTram ? T.colBay : T.colTrack);
   const platformDisplay = platformChanged
