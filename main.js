@@ -1,5 +1,29 @@
 // main.js – Echtzeit-Abfahrten International v2.0 b1
 
+// ----------------- Selbstständiges Update -----------------
+// Gleicht die eigene Version gegen version.json ab (immer mit cache:"no-store" geholt,
+// also garantiert am Browser-Cache vorbei) und lädt bei Abweichung neu. Nötig, weil
+// index.html zwar bei jedem Aufruf frisch geholt wird (no-cache), main.js/style.css aber
+// bewusst 7 Tage gecacht sind (siehe htaccess) — ohne diesen Check bleiben bereits
+// geladene Tabs und Browser mit noch warmem Cache auf altem Code hängen. Gleiches Muster
+// wie in den Schwesterprojekten Backlog/Delphin5.
+const APP_VERSION = "2.0 b1";
+fetch("version.json", { cache: "no-store" })
+  .then(r => r.json())
+  .then(({ v }) => {
+    if (v === APP_VERSION) return;
+    // Höchstens ein Reload pro Tab-Session pro Zielversion: falls main.js und version.json
+    // bei einem Deploy mal auseinanderlaufen (z. B. eine Datei vergessen hochzuladen), wäre
+    // die Abweichung sonst dauerhaft und würde in eine Reload-Schlaufe laufen statt sich nur
+    // einmal (folgenlos falsch) zu zeigen.
+    let alreadyTried = false;
+    try { alreadyTried = sessionStorage.getItem("reloadedForVersion") === v; } catch {}
+    if (alreadyTried) return;
+    try { sessionStorage.setItem("reloadedForVersion", v); } catch {}
+    window.location.reload();
+  })
+  .catch(() => {});
+
 // ----------------- Konstanten & Elemente -----------------
 const MAX_FAVORITES = 7;
 
