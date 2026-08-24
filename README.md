@@ -43,7 +43,7 @@ A lightweight, PWA-ready real-time departure board for public transport in Switz
 ├── icon-192.png
 ├── icon-512.png
 ├── about.html          # About page / FAQ (DE + EN, language auto-detected)
-├── htacess             # Apache cache/header rules — rename to .htaccess on upload (dot prefix hides file on macOS)
+├── htaccess            # Apache cache/header rules — rename to .htaccess on upload (dot prefix hides the file in Finder). Get the spelling exactly right: h-t-a-c-c-e-s-s (double c) — a near-miss like ".htacess" is silently ignored by Apache with no error, and every response comes back without the intended Cache-Control headers.
 └── install/
     ├── index.html      # Install guide (iOS/Android detection)
     └── install.css
