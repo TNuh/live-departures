@@ -43,11 +43,14 @@ A lightweight, PWA-ready real-time departure board for public transport in Switz
 ├── icon-192.png
 ├── icon-512.png
 ├── about.html          # About page / FAQ (DE + EN, language auto-detected)
+├── version.json        # { "v": "…" } — polled by main.js's self-update check, see Changelog
 ├── htaccess            # Apache cache/header rules — rename to .htaccess on upload (dot prefix hides the file in Finder). Get the spelling exactly right: h-t-a-c-c-e-s-s (double c) — a near-miss like ".htacess" is silently ignored by Apache with no error, and every response comes back without the intended Cache-Control headers.
 └── install/
     ├── index.html      # Install guide (iOS/Android detection)
     └── install.css
 ```
+
+**Bumping the version string touches more places than it looks like** — grep for the current version string before assuming you've caught them all: `index.html` (top comment, footer, menu, the `VERSION` const for the feedback-mailto subject, and the `?v=` query string on the `main.js`/`style.css` tags), `main.js` (top comment and the `APP_VERSION` const), `style.css` (top comment), `about.html` (both copyright lines and its own `style.css?v=` query string), and `version.json`. **`version.json` and `main.js`'s `APP_VERSION` must match exactly after every deploy** — see the self-update mechanism in the Changelog for why a mismatch there isn't just cosmetic.
 
 ---
 
@@ -175,6 +178,11 @@ Home screen redesign (matches the native app's `FavouritesListView`):
 - Departure table switched to `table-layout: fixed` with explicit column widths — fixes a bug where a long destination name could grow the table past its own width and push the departure-time column off-screen on narrow viewports
 - `about.html` copy updated throughout to match the new UI
 
+Post-release fixes (still v2.0 b1, found testing live on iPhone after the initial deploy):
+- Delay/cancel marker (`!`/`✕`) had a literal trailing space instead of a controlled CSS margin, and the Abfahrt column's `table-layout:fixed` width (4.6rem) was too narrow to fit it — long delayed times were ellipsis-truncated (`! 10:...`). Tightened the marker spacing and widened the column to 5.3rem.
+- **Self-update mechanism** — `index.html` is `no-cache` (always fresh) but `main.js`/`style.css` are deliberately cached 7 days (`htaccess`); a browser that already cached the old JS/CSS before a deploy just kept serving it silently, sometimes indefinitely for an already-open tab. `main.js` now fetches `version.json` (`cache: "no-store"`) on load and reloads if its `APP_VERSION` doesn't match; `index.html`/`about.html` reference `main.js`/`style.css` with a `?v=` cache-busting query string so the reload actually gets fresh assets rather than the same stale cached ones. A `sessionStorage` one-shot guard prevents an infinite reload loop if `version.json` and `APP_VERSION` ever end up out of sync from an incomplete deploy. **`version.json`'s `v` and `main.js`'s `APP_VERSION` must be bumped together on every release** — see the version-string list under File Structure.
+- Diagnosed (not a code issue): a report of the site not loading at all traced to the user's home network security appliance (Plume) flagging the domain as dangerous, unrelated to the app.
+
 ### v1.5 (2026-04-19)
 - **Germany via Transitous** — full DE integration: autocomplete, nearby, and departures via `api.transitous.org`; replaces defunct `v6.db.transport.rest` (DB HAFAS shutdown)
 - **Country toggle** — 🇨🇭/🇩🇪 flag button in title area; switches all three modes (Favorites, Nearby, Other) and resets current station
@@ -228,7 +236,6 @@ A single GoatCounter script tag (`gc.zgo.at/count.js`) is included for page view
 
 ---
 
-## Tooling notes
+## Deploy
 
-- **`apple-design` skill** (from [github.com/emilkowalski/skills](https://github.com/emilkowalski/skills)) — evaluated 2026-08-23, not yet installed. Distills Apple's WWDC design/motion talks (fluid interfaces, springs, materials, typography, reduced motion) **translated for the web** (CSS, Pointer Events, `requestAnimationFrame`, spring libraries) — a direct match for this codebase's stack, unlike the native iOS app where SwiftUI already gives most of it for free. Install with `npx skills@latest add emilkowalski/skills` when ready to invest in motion/interaction polish here (e.g. sheet drag physics, country-switch transitions). The repo's other skills (animation tooling, `pick-ui-library`, `ask-sonner`, `prototype`) are React/JS-ecosystem-focused and mostly not applicable to this vanilla-JS codebase — worth a second look only if a framework migration ever happens.
-- **Automated deploy — planned, on hold (2026-08-24).** Deploy is currently manual: upload changed files to Infomaniak via FTP client, then (separately) rename `htaccess` → `.htaccess` on the server by hand. A GitHub Actions workflow was drafted to replace the upload step — `workflow_dispatch` (manual "Run workflow" button, deliberately **not** deploy-on-push, to match the current deliberate/controlled release cadence) running [`SamKirkland/FTP-Deploy-Action`](https://github.com/SamKirkland/FTP-Deploy-Action), excluding `.git*`, `.github/`, `README.md`, `CONCEPT.md`. Needs three GitHub repo secrets (`FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`) and confirmation of two assumptions before it can be enabled: the FTP protocol (assumed `ftps`; could be plain `ftp` or `sftp`) and whether the FTP login lands directly in the web root or a subfolder (`server-dir`). The `htaccess` → `.htaccess` rename would stay a manual step even once this lands — Martin's deliberate choice, not something to automate away. Picked back up when Martin's ready. A drafted `.github/workflows/deploy.yml` exists locally (uncommitted, in the working tree as of 2026-08-24) — if it's gone, recreate it from this description rather than assuming it was ever pushed.
+Manual: upload the changed files to Infomaniak via FTP, then rename `htaccess` → `.htaccess` on the server by hand (see File Structure above for why the exact spelling matters). Before uploading, confirm `version.json`'s `v` and `main.js`'s `APP_VERSION` match (see the version-string checklist under File Structure) — a mismatch triggers the self-update reload logic unnecessarily.
