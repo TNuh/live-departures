@@ -1,4 +1,4 @@
-// main.js – Echtzeit-Abfahrten International v2.0 b1
+// main.js – Echtzeit-Abfahrten International v2.0 b2
 
 // ----------------- Selbstständiges Update -----------------
 // Gleicht die eigene Version gegen version.json ab (immer mit cache:"no-store" geholt,
@@ -7,7 +7,7 @@
 // bewusst 7 Tage gecacht sind (siehe htaccess) — ohne diesen Check bleiben bereits
 // geladene Tabs und Browser mit noch warmem Cache auf altem Code hängen. Gleiches Muster
 // wie in den Schwesterprojekten Backlog/Delphin5.
-const APP_VERSION = "2.0 b1";
+const APP_VERSION = "2.0 b2";
 fetch("version.json", { cache: "no-store" })
   .then(r => r.json())
   .then(({ v }) => {
